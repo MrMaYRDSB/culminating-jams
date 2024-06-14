@@ -418,19 +418,59 @@ class Player {
       }
     }
 
+    
+    let results: number[];
+
     if (
       YCollisionResults[0] <= XCollisionResults[0] &&
       YCollisionResults[0] <= ZCollisionResults[0]
     ) {
-      return YCollisionResults
+      results = YCollisionResults
     } else if (
       XCollisionResults[0] <= YCollisionResults[0] &&
       XCollisionResults[0] <= ZCollisionResults[0]
     ) {
-      return XCollisionResults
+      results = XCollisionResults
     } else {
-      return ZCollisionResults
+      results = ZCollisionResults
     }
+
+    const COLLISION_WITH_PLAYER: number[] = this.getShortestRayCollisionToPlayer(RAY_VELOCITY);
+    if (COLLISION_WITH_PLAYER[0] < results[0]) {
+      results = COLLISION_WITH_PLAYER
+    }
+
+    return results;
+  }
+
+
+  public getShortestRayCollisionToPlayer(rayVector: number[]): number[] {
+    let shortestDistance: number = 1000000;
+    let color: number = 0
+
+    const CHARACTERS_POSITIONS: { x: number, y: number, z: number, color: number }[] = Object.values(Game.instance.otherPlayers)
+    
+    for (let char of CHARACTERS_POSITIONS) { 
+      const charMin: number[] = [char.x - Player.size / 2, char.y - Player.size / 2, char.z - Player.size]
+      const charMax: number[] = [char.x + Player.size / 2, char.y + Player.size / 2, char.z]
+      const INTERSECTIONS: number[][] | null = VectorMath.findLineCubeIntersections(
+        [this._x, this._y, this._z], 
+        rayVector, 
+        charMin, 
+        charMax
+      )
+
+      if (INTERSECTIONS) {
+        for (let point of INTERSECTIONS) { 
+          const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point)
+          if (DISTANCE < shortestDistance) {
+            shortestDistance = DISTANCE
+            color = char.color
+          }
+        }
+      }
+    }
+    return [shortestDistance, color]
   }
 
 
@@ -472,7 +512,8 @@ class Player {
   //       }
   //     }
  
-  //     // if the ray collided into a wall, return the distance the ray has travelled and the x position of the wall hit (from the left)
+  //     // if the ray collided into a wall, return the distance the 
+  //     // ray has travelled and the x position of the wall hit(from the left)
   //     if (
   //       Game.instance.gameMap.map
   //       [Math.floor(currentRayPositionZ / GameMap.tileSize)]

@@ -321,17 +321,43 @@ class Player {
                 planeYLevel += GameMap.tileSize * planeYLevelMultiplier;
             }
         }
+        let results;
         if (YCollisionResults[0] <= XCollisionResults[0] &&
             YCollisionResults[0] <= ZCollisionResults[0]) {
-            return YCollisionResults;
+            results = YCollisionResults;
         }
         else if (XCollisionResults[0] <= YCollisionResults[0] &&
             XCollisionResults[0] <= ZCollisionResults[0]) {
-            return XCollisionResults;
+            results = XCollisionResults;
         }
         else {
-            return ZCollisionResults;
+            results = ZCollisionResults;
         }
+        const COLLISION_WITH_PLAYER = this.getShortestRayCollisionToPlayer(RAY_VELOCITY);
+        if (COLLISION_WITH_PLAYER[0] < results[0]) {
+            results = COLLISION_WITH_PLAYER;
+        }
+        return results;
+    }
+    getShortestRayCollisionToPlayer(rayVector) {
+        let shortestDistance = 1000000;
+        let color = 0;
+        const CHARACTERS_POSITIONS = Object.values(Game.instance.otherPlayers);
+        for (let char of CHARACTERS_POSITIONS) {
+            const charMin = [char.x - Player.size / 2, char.y - Player.size / 2, char.z - Player.size];
+            const charMax = [char.x + Player.size / 2, char.y + Player.size / 2, char.z];
+            const INTERSECTIONS = VectorMath.findLineCubeIntersections([this._x, this._y, this._z], rayVector, charMin, charMax);
+            if (INTERSECTIONS) {
+                for (let point of INTERSECTIONS) {
+                    const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point);
+                    if (DISTANCE < shortestDistance) {
+                        shortestDistance = DISTANCE;
+                        color = char.color;
+                    }
+                }
+            }
+        }
+        return [shortestDistance, color];
     }
 }
 export { Player };
