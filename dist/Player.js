@@ -229,14 +229,17 @@ class Player {
             let planeZLevel = this._z + distanceToClosestXYPlane;
             while (true) {
                 const POI = VectorMath.linePlaneIntersection(NORMAL_VECTOR, [0, 0, planeZLevel], PLAYER_POSITION, RAY_VELOCITY);
-                if (POI[0] >= 0 && POI[0] <= MAP_LENGTH_X &&
-                    POI[1] >= 0 && POI[1] <= MAP_LENGTH_Y &&
-                    POI[2] >= 0 && POI[2] <= MAP_LENGTH_Z) {
+                if (POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
+                    POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
+                    POI[2] >= 0 && POI[2] < MAP_LENGTH_Z) {
                     if (Game.instance.gameMap.map[Math.floor(POI[2] / GameMap.tileSize)][Math.floor(POI[1] / GameMap.tileSize)][Math.floor(POI[0] / GameMap.tileSize)] === 1) {
                         // ray hit
                         const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION);
-                        const HIT_X = POI[0] % GameMap.tileSize;
-                        const HIT_Y = POI[1] % GameMap.tileSize;
+                        const HIT_X = Math.abs(POI[0] % GameMap.tileSize);
+                        const HIT_Y = Math.abs(POI[1] % GameMap.tileSize);
+                        // NOTE: *0.99 in the above is a bandaid solution to prevent overflowing texture bound
+                        // Since POI Calculations are precise, sometimes it gets HIT_X = 64 (boundary)
+                        // So the wall Texture array access will exceed length
                         const PIXEL_COLOR = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
                         ZCollisionResults = [DISTANCE, PIXEL_COLOR];
                         break;
@@ -247,9 +250,6 @@ class Player {
                 }
                 planeZLevel += GameMap.tileSize * planeZLevelMultiplier;
             }
-        }
-        else {
-            console.log("no check xy");
         }
         // CHECK RAY YZ COLLISION
         if (checkYZPlaneCollision) {
@@ -267,14 +267,14 @@ class Player {
             let planeXLevel = this._x + distanceToClosestYZPlane;
             while (true) {
                 const POI = VectorMath.linePlaneIntersection(NORMAL_VECTOR, [planeXLevel, 0, 0], PLAYER_POSITION, RAY_VELOCITY);
-                if (POI[0] >= 0 && POI[0] <= MAP_LENGTH_X &&
-                    POI[1] >= 0 && POI[1] <= MAP_LENGTH_Y &&
-                    POI[2] >= 0 && POI[2] <= MAP_LENGTH_Z) {
+                if (POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
+                    POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
+                    POI[2] >= 0 && POI[2] < MAP_LENGTH_Z) {
                     if (Game.instance.gameMap.map[Math.floor(POI[2] / GameMap.tileSize)][Math.floor(POI[1] / GameMap.tileSize)][Math.floor(POI[0] / GameMap.tileSize)] === 1) {
                         // ray hit
                         const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION);
-                        const HIT_Y = POI[1] % GameMap.tileSize;
-                        const HIT_Z = GameMap.tileSize - (POI[2] % GameMap.tileSize);
+                        const HIT_Y = Math.abs(POI[1] % GameMap.tileSize);
+                        const HIT_Z = Math.abs(GameMap.tileSize - (POI[2] % GameMap.tileSize)) * 0.99;
                         const PIXEL_COLOR = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
                         XCollisionResults = [DISTANCE, PIXEL_COLOR];
                         break;
@@ -285,9 +285,6 @@ class Player {
                 }
                 planeXLevel += GameMap.tileSize * planeXLevelMultiplier;
             }
-        }
-        else {
-            console.log("no check yz");
         }
         // CHECK PLANE XZ COLLISION
         if (checkXZPlaneCollision) {
@@ -305,14 +302,14 @@ class Player {
             let planeYLevel = this._y + distanceToClosestXZPlane;
             while (true) {
                 const POI = VectorMath.linePlaneIntersection(NORMAL_VECTOR, [0, planeYLevel, 0], PLAYER_POSITION, RAY_VELOCITY);
-                if (POI[0] >= 0 && POI[0] <= MAP_LENGTH_X &&
-                    POI[1] >= 0 && POI[1] <= MAP_LENGTH_Y &&
-                    POI[2] >= 0 && POI[2] <= MAP_LENGTH_Z) {
+                if (POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
+                    POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
+                    POI[2] >= 0 && POI[2] < MAP_LENGTH_Z) {
                     if (Game.instance.gameMap.map[Math.floor(POI[2] / GameMap.tileSize)][Math.floor(POI[1] / GameMap.tileSize)][Math.floor(POI[0] / GameMap.tileSize)] === 1) {
                         // ray hit
                         const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION);
-                        const HIT_X = POI[0] % GameMap.tileSize;
-                        const HIT_Z = GameMap.tileSize - (POI[2] % GameMap.tileSize);
+                        const HIT_X = Math.abs(POI[0] % GameMap.tileSize);
+                        const HIT_Z = Math.abs(GameMap.tileSize - (POI[2] % GameMap.tileSize)) * 0.99;
                         const PIXEL_COLOR = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_X / GameMap.wallBitSize)];
                         YCollisionResults = [DISTANCE, PIXEL_COLOR];
                         break;
@@ -323,9 +320,6 @@ class Player {
                 }
                 planeYLevel += GameMap.tileSize * planeYLevelMultiplier;
             }
-        }
-        else {
-            console.log('no check xz');
         }
         if (YCollisionResults[0] <= XCollisionResults[0] &&
             YCollisionResults[0] <= ZCollisionResults[0]) {
