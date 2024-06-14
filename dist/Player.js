@@ -321,7 +321,8 @@ class Player {
                 planeYLevel += GameMap.tileSize * planeYLevelMultiplier;
             }
         }
-        if (YCollisionResults[0] <= XCollisionResults[0] && YCollisionResults <= ZCollisionResults) {
+        if (YCollisionResults[0] <= XCollisionResults[0] &&
+            YCollisionResults[0] <= ZCollisionResults[0]) {
             return YCollisionResults;
         }
         else if (XCollisionResults[0] <= YCollisionResults[0] &&
