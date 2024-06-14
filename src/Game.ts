@@ -171,7 +171,7 @@ class Game {
         let rayAngles: number[] = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint)
 
         // replace with angles[0] and angles[1] later
-        const RAW_RAY_DISTANCE = this.player.castBlockVisionRay(rayAngles[0], rayAngles[1]);
+        const RAW_RAY_DISTANCE = this.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
         
         // custom shading
         // render the pixel

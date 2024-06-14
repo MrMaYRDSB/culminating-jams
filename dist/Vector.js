@@ -48,6 +48,38 @@ class VectorMath {
     static scalarMultiply(v, s) {
         return [v[0] * s, v[1] * s, v[2] * s];
     }
+    static subtractVector(v1, v2) {
+        return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+    }
+    static getDistance(p1, p2) {
+        return VectorMath.getMagnitude([p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]]);
+    }
+    static dotProduct(v1, v2) {
+        return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+    }
+    // ChatGPT code for finding intersection between line and plane
+    // Adjusted to use my code
+    static linePlaneIntersection(planeNormal, planePoint, linePoint, lineDirection) {
+        const d = VectorMath.subtractVector(linePoint, planePoint);
+        const nDotD = VectorMath.dotProduct(planeNormal, d);
+        const nDotB = VectorMath.dotProduct(planeNormal, lineDirection);
+        // Check if the line is parallel to the plane
+        if (nDotB === 0) {
+            if (nDotD === 0) {
+                // The line lies in the plane
+                return null; // Returning null to indicate no unique intersection
+            }
+            else {
+                // The line is parallel and distinct from the plane
+                return null;
+            }
+        }
+        // Calculate the scalar parameter t
+        const t = -nDotD / nDotB;
+        // Calculate the intersection point
+        const intersectionPoint = VectorMath.addVectors(linePoint, VectorMath.scalarMultiply(lineDirection, t));
+        return intersectionPoint;
+    }
 }
 export { VectorMath };
 //# sourceMappingURL=Vector.js.map

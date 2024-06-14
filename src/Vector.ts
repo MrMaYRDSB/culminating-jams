@@ -1,5 +1,4 @@
 class VectorMath {
-
   public static getMagnitude(v: number[]): number {
     return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2) + Math.pow(v[2], 2))
   }
@@ -54,6 +53,49 @@ class VectorMath {
 
   public static scalarMultiply(v: number[], s: number): number[] {
     return [v[0] * s, v[1] * s, v[2] * s]
+  }
+
+  public static subtractVector(v1: number[], v2: number[]) {
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+  }
+
+  public static getDistance(p1: number[], p2: number[]) {
+    return VectorMath.getMagnitude([p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]])
+  }
+
+  public static dotProduct(v1: number[], v2: number[]): number {
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  }
+
+  // ChatGPT code for finding intersection between line and plane
+  // Adjusted to use my code
+  public static linePlaneIntersection(
+    planeNormal: number[],
+    planePoint: number[],
+    linePoint: number[],
+    lineDirection: number[]
+  ): number[] | null {
+    const d = VectorMath.subtractVector(linePoint, planePoint);
+    const nDotD = VectorMath.dotProduct(planeNormal, d);
+    const nDotB = VectorMath.dotProduct(planeNormal, lineDirection);
+
+    // Check if the line is parallel to the plane
+    if (nDotB === 0) {
+      if (nDotD === 0) {
+        // The line lies in the plane
+        return null; // Returning null to indicate no unique intersection
+      } else {
+        // The line is parallel and distinct from the plane
+        return null;
+      }
+    }
+
+    // Calculate the scalar parameter t
+    const t = -nDotD / nDotB;
+
+    // Calculate the intersection point
+    const intersectionPoint = VectorMath.addVectors(linePoint, VectorMath.scalarMultiply(lineDirection, t));
+    return intersectionPoint;
   }
 }
 
