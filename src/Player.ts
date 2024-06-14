@@ -19,13 +19,8 @@ class Player {
   private _rotationSpeed: number = Math.PI/180
   private _fov = Math.PI / 2; // Field of view
   public colorCode: number = Utilities.randInt(0, PIXEL_COLORS.length)
-  readonly acceleration: number = 1
+  readonly acceleration: number = 2
   readonly maxMovingSpeed: number = 8
-
-  public isAcceleratingLeft: boolean = false;
-  public isAcceleratingRight: boolean = false;
-  public isAcceleratingForward: boolean = false;
-  public isAcceleratingBackward: boolean = false;
 
   readonly id: string = nanoid(20);
 
@@ -94,16 +89,16 @@ class Player {
     const rightV: number[] = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI / 2, 0])
     
     let vectorSum: number[] = [0, 0, 0];
-    if (this.isAcceleratingBackward) {
+    if (Game.instance.controller.sKeyPressed) {
       vectorSum = VectorMath.addVectors(vectorSum, backwardV)
     } 
-    if (this.isAcceleratingForward) {
+    if (Game.instance.controller.wKeyPressed) {
       vectorSum = VectorMath.addVectors(vectorSum, forwardV)
     } 
-    if (this.isAcceleratingLeft) {
+    if (Game.instance.controller.aKeyPressed) {
       vectorSum = VectorMath.addVectors(vectorSum, leftV)
     } 
-    if (this.isAcceleratingRight) {
+    if (Game.instance.controller.dKeyPressed) {
       vectorSum = VectorMath.addVectors(vectorSum, rightV)
     } 
     return VectorMath.convertVectorToUnitVector(vectorSum);
@@ -115,10 +110,11 @@ class Player {
       this.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     
     if (INTENDED_MOVEMENT_DIRECTION[0] !== 0 || INTENDED_MOVEMENT_DIRECTION[1] !== 0) {
-      const INTENDED_MOVEMENT_DIRECTION_WITH_MAGNITUDE: number[] = 
-      VectorMath.convertUnitVectorToVector(INTENDED_MOVEMENT_DIRECTION, this.acceleration)
-      this.velocityVector[0] += INTENDED_MOVEMENT_DIRECTION_WITH_MAGNITUDE[0]
-      this.velocityVector[1] += INTENDED_MOVEMENT_DIRECTION_WITH_MAGNITUDE[1]
+      const INTENDED_ACCELERATION_VECTOR: number[] = 
+        VectorMath.convertUnitVectorToVector(INTENDED_MOVEMENT_DIRECTION, this.acceleration)
+      
+      this.velocityVector[0] += INTENDED_ACCELERATION_VECTOR[0]
+      this.velocityVector[1] += INTENDED_ACCELERATION_VECTOR[1]
 
       // limit horizontal movement speed
       const HV_VECTOR: number[] = [this.velocityVector[0], this.velocityVector[1], 0]
@@ -134,16 +130,21 @@ class Player {
       // check for deceleration
       // decelerate character
       const DECELERATE_DIRECTION: number[] =
-        VectorMath.scalarMultiply(this.velocityVector, -1)
-      const INTENDED_DECELERATION_DIRECTION_WITH_MAGNITUDE: number[] = 
+        VectorMath.convertVectorToUnitVector(VectorMath.scalarMultiply(this.velocityVector, -1))
+      const INTENDED_DECELERATION_VECTOR: number[] = 
         VectorMath.convertUnitVectorToVector(DECELERATE_DIRECTION, this.acceleration)
-        this.velocityVector[0] += INTENDED_DECELERATION_DIRECTION_WITH_MAGNITUDE[0]
-        this.velocityVector[1] += INTENDED_DECELERATION_DIRECTION_WITH_MAGNITUDE[1]
+      if (
+        VectorMath.getMagnitude(INTENDED_DECELERATION_VECTOR) >
+        VectorMath.getMagnitude(this.velocityVector)
+      ) {
+        this.velocityVector[0] = 0;
+        this.velocityVector[1] = 0;
+      } else {
+        this.velocityVector[0] += INTENDED_DECELERATION_VECTOR[0]
+        this.velocityVector[1] += INTENDED_DECELERATION_VECTOR[1]
+      }
     }
-    
-
   }
-
 
   public moveX(): void {
     this._x += this.velocityVector[0]

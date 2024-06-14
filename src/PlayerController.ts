@@ -5,10 +5,10 @@ import { Player } from "./Player.js";
 
 
 class PlayerController {
-  private wKeyPressed: boolean = false;
-  private aKeyPressed: boolean = false;
-  private sKeyPressed: boolean = false;
-  private dKeyPressed: boolean = false;
+  private _wKeyPressed: boolean = false;
+  private _aKeyPressed: boolean = false;
+  private _sKeyPressed: boolean = false;
+  private _dKeyPressed: boolean = false;
   private spaceKeyPressed: boolean = false;
 
   // default is 1
@@ -18,27 +18,26 @@ class PlayerController {
     return this._sensitivity
   }
 
+  public get wKeyPressed(): boolean {
+    return this._wKeyPressed
+  }
+
+  
+  public get aKeyPressed(): boolean {
+    return this._aKeyPressed
+  }
+
+  
+  public get dKeyPressed(): boolean {
+    return this._dKeyPressed
+  }
+
+  
+  public get sKeyPressed(): boolean {
+    return this._sKeyPressed
+  }
+
   public updatePlayer() {
-    if (this.dKeyPressed) {
-      this.player.isAcceleratingRight = true
-    } else {
-      this.player.isAcceleratingRight = false
-    }
-    if (this.aKeyPressed) {
-      this.player.isAcceleratingLeft = true
-    } else {
-      this.player.isAcceleratingLeft = false
-    }
-    if (this.wKeyPressed) {
-      this.player.isAcceleratingForward = true
-    } else {
-      this.player.isAcceleratingForward = false
-    }
-    if (this.sKeyPressed) {
-      this.player.isAcceleratingBackward = true
-    } else {
-      this.player.isAcceleratingBackward = false
-    }
     if (this.spaceKeyPressed) {
       this.player.jump();
     }
@@ -64,16 +63,16 @@ class PlayerController {
     document.addEventListener("mousedown", (event) => this.handleMouseClickEvent(event));
     document.addEventListener('keydown', (e) => {
       if (e.key === 'd') {
-        this.dKeyPressed = true;
+        this._dKeyPressed = true;
       }
       if (e.key === 'a') {
-        this.aKeyPressed = true;
+        this._aKeyPressed = true;
       }
       if (e.key === 'w') {
-        this.wKeyPressed = true;
+        this._wKeyPressed = true;
       }
       if (e.key === 's') {
-        this.sKeyPressed = true;
+        this._sKeyPressed = true;
       }
       if (e.key === " ") {
         this.spaceKeyPressed = true;
@@ -82,16 +81,16 @@ class PlayerController {
 
     document.addEventListener('keyup', (e) => {
       if (e.key === 'd') {
-        this.dKeyPressed = false;
+        this._dKeyPressed = false;
       }
       if (e.key === 'a') {
-        this.aKeyPressed = false;
+        this._aKeyPressed = false;
       }
       if (e.key === 'w') {
-        this.wKeyPressed = false;
+        this._wKeyPressed = false;
       }
       if (e.key === 's') {
-        this.sKeyPressed = false;
+        this._sKeyPressed = false;
       } 
       if (e.key === " ") {
         this.spaceKeyPressed = false
