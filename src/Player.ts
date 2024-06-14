@@ -268,7 +268,6 @@ class Player {
     // CHECK PLANE XY COLLISION
     if (checkXYPlaneCollision) {
       const NORMAL_VECTOR: number[] = [0, 0, 1];
-
       let distanceToClosestXYPlane: number
       let planeZLevelMultiplier: number = 1
       if (RAY_VELOCITY[2] > 0) {
@@ -287,7 +286,6 @@ class Player {
           PLAYER_POSITION, 
           RAY_VELOCITY
         )
-
         if (
           POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
           POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
@@ -304,7 +302,6 @@ class Player {
             const HIT_X: number = Math.abs(POI[0] % GameMap.tileSize)
             const HIT_Y: number = Math.abs(POI[1] % GameMap.tileSize)
             
-
             // NOTE: (*0.99) and (+- 0.1) in the above is a bandaid solution to prevent overflowing texture bound
             // Since POI Calculations are precise, sometimes it gets HIT_X = 64 (boundary)
             // So the wall Texture array access will exceed length
@@ -344,7 +341,6 @@ class Player {
           PLAYER_POSITION, 
           RAY_VELOCITY
         )
-
         if (
           POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
           POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
@@ -387,7 +383,6 @@ class Player {
         distanceToClosestXZPlane = -Math.ceil(this._y % GameMap.tileSize) - 0.1
         planeYLevelMultiplier = -1
       }
-
       let planeYLevel: number = this._y + distanceToClosestXZPlane
       while (true) {
         const POI: number[] = VectorMath.linePlaneIntersection(
@@ -396,7 +391,6 @@ class Player {
           PLAYER_POSITION, 
           RAY_VELOCITY
         )
-
         if (
           POI[0] >= 0 && POI[0] < MAP_LENGTH_X &&
           POI[1] >= 0 && POI[1] < MAP_LENGTH_Y &&
