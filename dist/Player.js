@@ -1,6 +1,6 @@
 import { UpdatePlayerPositionToFirebaseCommand } from "./Command.js";
 import { Game } from "./Game.js";
-import { GameMap, Colors, PIXEL_COLORS } from "./Map.js";
+import { GameMap, PIXEL_COLORS } from "./Map.js";
 //@ts-ignore Import module
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
 import { Utilities } from "./Utilities.js";
@@ -219,11 +219,11 @@ class Player {
             let distanceToClosestXYPlane;
             let planeZLevelMultiplier = 1;
             if (RAY_VELOCITY[2] > 0) {
-                distanceToClosestXYPlane = Math.ceil(GameMap.tileSize - (this._z % GameMap.tileSize));
+                distanceToClosestXYPlane = Math.ceil(GameMap.tileSize - (this._z % GameMap.tileSize)) + 0.1;
                 planeZLevelMultiplier = 1;
             }
             else {
-                distanceToClosestXYPlane = -Math.ceil(this._z % GameMap.tileSize) - 1;
+                distanceToClosestXYPlane = -Math.ceil(this._z % GameMap.tileSize) - 0.1;
                 planeZLevelMultiplier = -1;
             }
             let planeZLevel = this._z + distanceToClosestXYPlane;
@@ -237,7 +237,7 @@ class Player {
                         const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION);
                         const HIT_X = Math.abs(POI[0] % GameMap.tileSize);
                         const HIT_Y = Math.abs(POI[1] % GameMap.tileSize);
-                        // NOTE: *0.99 in the above is a bandaid solution to prevent overflowing texture bound
+                        // NOTE: (*0.99) and (+- 0.1) in the above is a bandaid solution to prevent overflowing texture bound
                         // Since POI Calculations are precise, sometimes it gets HIT_X = 64 (boundary)
                         // So the wall Texture array access will exceed length
                         const PIXEL_COLOR = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
@@ -257,11 +257,11 @@ class Player {
             let distanceToClosestYZPlane;
             let planeXLevelMultiplier = 1;
             if (RAY_VELOCITY[0] > 0) {
-                distanceToClosestYZPlane = Math.ceil(GameMap.tileSize - (this._x % GameMap.tileSize));
+                distanceToClosestYZPlane = Math.ceil(GameMap.tileSize - (this._x % GameMap.tileSize)) + 0.1;
                 planeXLevelMultiplier = 1;
             }
             else {
-                distanceToClosestYZPlane = -Math.ceil(this._x % GameMap.tileSize);
+                distanceToClosestYZPlane = -Math.ceil(this._x % GameMap.tileSize) - 0.1;
                 planeXLevelMultiplier = -1;
             }
             let planeXLevel = this._x + distanceToClosestYZPlane;
@@ -292,11 +292,11 @@ class Player {
             let distanceToClosestXZPlane;
             let planeYLevelMultiplier = 1;
             if (RAY_VELOCITY[1] > 0) {
-                distanceToClosestXZPlane = Math.ceil(GameMap.tileSize - (this._y % GameMap.tileSize));
+                distanceToClosestXZPlane = Math.ceil(GameMap.tileSize - (this._y % GameMap.tileSize)) + 0.1;
                 planeYLevelMultiplier = 1;
             }
             else {
-                distanceToClosestXZPlane = -Math.ceil(this._y % GameMap.tileSize);
+                distanceToClosestXZPlane = -Math.ceil(this._y % GameMap.tileSize) - 0.1;
                 planeYLevelMultiplier = -1;
             }
             let planeYLevel = this._y + distanceToClosestXZPlane;
@@ -331,79 +331,6 @@ class Player {
         }
         else {
             return ZCollisionResults;
-        }
-    }
-    castBlockVisionRay(yaw, pitch) {
-        // cheap way to increase performance by increasing the ray cast speed, it does reduce accuracy of render tho
-        // 4-5 is the limit, any higher and graphics will be completely innaccurate
-        // remove this method later, try  to use castBlockVisionRay2 if possible
-        // higher # = more innaccurate graphics
-        const RAY_SPEED = 5;
-        let currentRayPositionX = this._x;
-        let currentRayPositionY = this._y;
-        let currentRayPositionZ = this._z;
-        const RAY_VELOCITY_X = RAY_SPEED * Math.cos(pitch) * Math.cos(yaw);
-        const RAY_VELOCITY_Y = RAY_SPEED * Math.cos(pitch) * Math.sin(yaw);
-        const RAY_VELOCITY_Z = RAY_SPEED * Math.sin(pitch);
-        const CHARACTERS_POSITIONS = Object.values(Game.instance.otherPlayers);
-        while (true) {
-            let rayhitCharacter = false;
-            let hitColor = undefined;
-            for (let char of CHARACTERS_POSITIONS) {
-                if (this.pointInCharacterAtLocation(currentRayPositionX, currentRayPositionY, currentRayPositionZ, char.x, char.y, char.z)) {
-                    rayhitCharacter = true;
-                    hitColor = char.color;
-                }
-            }
-            // if the ray collided into a wall, return the distance the ray has travelled and the x position of the wall hit (from the left)
-            if (Game.instance.gameMap.map[Math.floor(currentRayPositionZ / GameMap.tileSize)][Math.floor(currentRayPositionY / GameMap.tileSize)][Math.floor(currentRayPositionX / GameMap.tileSize)] === 1) {
-                let pixelColorCode;
-                const RETRACED_X = currentRayPositionX - RAY_VELOCITY_X;
-                const RETRACED_Y = currentRayPositionY - RAY_VELOCITY_Y;
-                if (Game.instance.gameMap.map[Math.floor(currentRayPositionZ / GameMap.tileSize)][Math.floor(currentRayPositionY / GameMap.tileSize)][Math.floor(RETRACED_X / GameMap.tileSize)] === 0) {
-                    // the change in x is what made it it, calculate the position hit based on the y and z
-                    const HIT_Y = currentRayPositionY % GameMap.tileSize;
-                    const HIT_Z = GameMap.tileSize - (currentRayPositionZ % GameMap.tileSize);
-                    pixelColorCode = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
-                }
-                else if (Game.instance.gameMap.map[Math.floor(currentRayPositionZ / GameMap.tileSize)][Math.floor(RETRACED_Y / GameMap.tileSize)][Math.floor(currentRayPositionX / GameMap.tileSize)] === 0) {
-                    // the change in y is what made it it, calculate the position hit based on the x and z
-                    const HIT_X = currentRayPositionX % GameMap.tileSize;
-                    const HIT_Z = GameMap.tileSize - (currentRayPositionZ % GameMap.tileSize);
-                    pixelColorCode = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_X / GameMap.wallBitSize)];
-                }
-                else {
-                    // the change in z is what made it it, calculate the position hit based on the x and y
-                    const HIT_X = currentRayPositionX % GameMap.tileSize;
-                    const HIT_Y = currentRayPositionY % GameMap.tileSize;
-                    pixelColorCode = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
-                }
-                return [
-                    Math.sqrt(Math.pow(currentRayPositionX - this._x, 2) +
-                        Math.pow(currentRayPositionY - this._y, 2) +
-                        Math.pow(currentRayPositionZ - this._z, 2)),
-                    pixelColorCode
-                ];
-            }
-            else if (rayhitCharacter) {
-                return [
-                    Math.sqrt(Math.pow(currentRayPositionX - this._x, 2) +
-                        Math.pow(currentRayPositionY - this._y, 2) +
-                        Math.pow(currentRayPositionZ - this._z, 2)),
-                    hitColor
-                ];
-            }
-            else if (Math.sqrt(Math.pow(currentRayPositionX - this._x, 2) +
-                Math.pow(currentRayPositionY - this._y, 2) +
-                Math.pow(currentRayPositionZ - this._z, 2)) > Game.instance.maxRenderDistance) {
-                return [Math.sqrt(Math.pow(currentRayPositionX - this._x, 2) +
-                        Math.pow(currentRayPositionY - this._y, 2) +
-                        Math.pow(currentRayPositionZ - this._z, 2)), Colors.GRAY];
-            }
-            // move the ray 1 unit in the unit vector's direction
-            currentRayPositionX += RAY_VELOCITY_X;
-            currentRayPositionY += RAY_VELOCITY_Y;
-            currentRayPositionZ += RAY_VELOCITY_Z;
         }
     }
 }
