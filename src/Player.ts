@@ -177,6 +177,9 @@ class Player {
   }
 
   public updatePosition(): void {
+    if (Game.instance.controller.spaceKeyPressed) {
+      this.jump()
+    }
     this.modifyVelocityVectorBasedOnIntendedVector()
     this.moveX()
     this.moveY()

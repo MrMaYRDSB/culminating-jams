@@ -1,6 +1,7 @@
 import { HandleMouseClickCommand, HandleMouseMoveCommand } from "./Command.js";
 import { Canvas } from "./Canvas.js";
 import { Player } from "./Player.js";
+import { MouseLockClient } from "./MouseLockClient.js";
 
 
 
@@ -9,7 +10,10 @@ class PlayerController {
   private _aKeyPressed: boolean = false;
   private _sKeyPressed: boolean = false;
   private _dKeyPressed: boolean = false;
-  private spaceKeyPressed: boolean = false;
+  private _escKeyPressed: boolean = false
+  private _spaceKeyPressed: boolean = false;
+
+  readonly mouseLockClient: MouseLockClient = new MouseLockClient()
 
   // default is 1
   private _sensitivity: number = 0.5;
@@ -37,11 +41,12 @@ class PlayerController {
     return this._sKeyPressed
   }
 
-  public updatePlayer() {
-    if (this.spaceKeyPressed) {
-      this.player.jump();
-    }
-    this.player.updatePosition()
+  public get spaceKeyPressed(): boolean {
+    return this._spaceKeyPressed
+  }
+
+  public get escKeyPressed(): boolean {
+    return this._escKeyPressed;
   }
 
   protected mousePositionX: number = 0;
@@ -61,6 +66,8 @@ class PlayerController {
 
   constructor(readonly player: Player) {
     document.addEventListener("mousedown", (event) => this.handleMouseClickEvent(event));
+    document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e))
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'd') {
         this._dKeyPressed = true;
@@ -75,7 +82,10 @@ class PlayerController {
         this._sKeyPressed = true;
       }
       if (e.key === " ") {
-        this.spaceKeyPressed = true;
+        this._spaceKeyPressed = true;
+      }
+      if (e.key === "esc") {
+        this._escKeyPressed = true
       }
     });
 
@@ -93,11 +103,12 @@ class PlayerController {
         this._sKeyPressed = false;
       } 
       if (e.key === " ") {
-        this.spaceKeyPressed = false
+        this._spaceKeyPressed = false
+      }
+      if (e.key === "esc") {
+        this._escKeyPressed = false;
       }
     });
-
-    document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e))
   }
 
   public assignMouseClickCommand(c: HandleMouseClickCommand | undefined) {

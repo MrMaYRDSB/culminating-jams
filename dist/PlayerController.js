@@ -1,11 +1,14 @@
 import { Canvas } from "./Canvas.js";
+import { MouseLockClient } from "./MouseLockClient.js";
 class PlayerController {
     player;
     _wKeyPressed = false;
     _aKeyPressed = false;
     _sKeyPressed = false;
     _dKeyPressed = false;
-    spaceKeyPressed = false;
+    _escKeyPressed = false;
+    _spaceKeyPressed = false;
+    mouseLockClient = new MouseLockClient();
     // default is 1
     _sensitivity = 0.5;
     get sensitivity() {
@@ -23,11 +26,11 @@ class PlayerController {
     get sKeyPressed() {
         return this._sKeyPressed;
     }
-    updatePlayer() {
-        if (this.spaceKeyPressed) {
-            this.player.jump();
-        }
-        this.player.updatePosition();
+    get spaceKeyPressed() {
+        return this._spaceKeyPressed;
+    }
+    get escKeyPressed() {
+        return this._escKeyPressed;
     }
     mousePositionX = 0;
     mousePositionY = 0;
@@ -42,6 +45,7 @@ class PlayerController {
     constructor(player) {
         this.player = player;
         document.addEventListener("mousedown", (event) => this.handleMouseClickEvent(event));
+        document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e));
         document.addEventListener('keydown', (e) => {
             if (e.key === 'd') {
                 this._dKeyPressed = true;
@@ -56,7 +60,10 @@ class PlayerController {
                 this._sKeyPressed = true;
             }
             if (e.key === " ") {
-                this.spaceKeyPressed = true;
+                this._spaceKeyPressed = true;
+            }
+            if (e.key === "esc") {
+                this._escKeyPressed = true;
             }
         });
         document.addEventListener('keyup', (e) => {
@@ -73,10 +80,12 @@ class PlayerController {
                 this._sKeyPressed = false;
             }
             if (e.key === " ") {
-                this.spaceKeyPressed = false;
+                this._spaceKeyPressed = false;
+            }
+            if (e.key === "esc") {
+                this._escKeyPressed = false;
             }
         });
-        document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e));
     }
     assignMouseClickCommand(c) {
         this._mouseClickCommand = c;

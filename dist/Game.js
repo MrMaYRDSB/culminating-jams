@@ -18,7 +18,7 @@ class Game {
     controller = new PlayerController(this.player);
     context = Canvas.instance.context;
     gameLoop = undefined;
-    FPS = 60;
+    FPS = 30;
     timeInterval = 1000 / this.FPS;
     resolution = 10;
     gravitationalAccelerationConstant = 1;
@@ -48,7 +48,7 @@ class Game {
     startGame() {
         this.gameLoop = setInterval(() => {
             this.updateFromDatabase();
-            this.controller.updatePlayer();
+            this.player.updatePosition();
             this.renderForPlayer();
         }, this.timeInterval);
     }

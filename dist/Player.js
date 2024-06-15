@@ -144,6 +144,9 @@ class Player {
         }
     }
     updatePosition() {
+        if (Game.instance.controller.spaceKeyPressed) {
+            this.jump();
+        }
         this.modifyVelocityVectorBasedOnIntendedVector();
         this.moveX();
         this.moveY();
