@@ -1,4 +1,4 @@
-import { Rectangle } from "./Rectangle.js";
+import { Rectangle } from "./Shapes.js";
 import { Canvas } from "./Canvas.js";
 class MenuButton extends Rectangle {
     title;

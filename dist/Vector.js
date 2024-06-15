@@ -80,7 +80,7 @@ class VectorMath {
         const intersectionPoint = VectorMath.addVectors(linePoint, VectorMath.scalarMultiply(lineDirection, t));
         return intersectionPoint;
     }
-    // CHATGPT code that complements 
+    // CHATGPT code that complements findLineCubeIntersections
     static isPointInsideCube(point, cubeMin, cubeMax) {
         return (point[0] >= cubeMin[0] && point[0] <= cubeMax[0]) &&
             (point[1] >= cubeMin[1] && point[1] <= cubeMax[1]) &&

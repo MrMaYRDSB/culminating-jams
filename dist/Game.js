@@ -113,7 +113,6 @@ class Game {
                 let viewportTopLeftToPointVector = VectorMath.addVectors(VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x), VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y));
                 let vectorFromPlayerToPoint = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector);
                 let rayAngles = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint);
-                // replace with angles[0] and angles[1] later
                 const RAW_RAY_DISTANCE = this.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
                 // custom shading
                 // render the pixel

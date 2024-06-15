@@ -4,7 +4,7 @@ import { GameMap, Colors, PIXEL_COLORS } from "./Map.js"
 //@ts-ignore Import module
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
 import { Utilities } from "./Utilities.js";
-import { VectorMath } from "./Vector.js";
+import { VectorMath, Vector, Position, Direction } from "./Vector.js";
 
 class Player {
 
@@ -29,7 +29,7 @@ class Player {
 
   private maxPitch: number = Math.PI / 2
 
-  private velocityVector: number[] = [0, 0, 0]
+  private velocityVector: Vector = [0, 0, 0]
   
   public get x(): number {
     return this._x
@@ -82,13 +82,13 @@ class Player {
   }
 
 
-  public determineIntendedMovementDirectionVectorBasedOnAccelerationDirections(): number[] {
-    const forwardV: number[] = VectorMath.convertYawAndPitchToUnitVector([this.yaw, 0])
-    const backwardV: number[] = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI, 0])
-    const leftV: number[] = VectorMath.convertYawAndPitchToUnitVector([this.yaw - Math.PI / 2, 0])
-    const rightV: number[] = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI / 2, 0])
+  public determineIntendedMovementDirectionVectorBasedOnAccelerationDirections(): Vector {
+    const forwardV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw, 0])
+    const backwardV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI, 0])
+    const leftV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw - Math.PI / 2, 0])
+    const rightV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI / 2, 0])
     
-    let vectorSum: number[] = [0, 0, 0];
+    let vectorSum: Vector = [0, 0, 0];
     if (Game.instance.controller.sKeyPressed) {
       vectorSum = VectorMath.addVectors(vectorSum, backwardV)
     } 
@@ -106,22 +106,22 @@ class Player {
 
 
   public modifyVelocityVectorBasedOnIntendedVector() {
-    const INTENDED_MOVEMENT_DIRECTION: number[] =
+    const INTENDED_MOVEMENT_DIRECTION: Vector =
       this.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     
     if (INTENDED_MOVEMENT_DIRECTION[0] !== 0 || INTENDED_MOVEMENT_DIRECTION[1] !== 0) {
-      const INTENDED_ACCELERATION_VECTOR: number[] = 
+      const INTENDED_ACCELERATION_VECTOR: Vector = 
         VectorMath.convertUnitVectorToVector(INTENDED_MOVEMENT_DIRECTION, this.acceleration)
       
       this.velocityVector[0] += INTENDED_ACCELERATION_VECTOR[0]
       this.velocityVector[1] += INTENDED_ACCELERATION_VECTOR[1]
 
       // limit horizontal movement speed
-      const HV_VECTOR: number[] = [this.velocityVector[0], this.velocityVector[1], 0]
-      if (VectorMath.getMagnitude(HV_VECTOR) > this.maxMovingSpeed) {
-        const CORRECTED_VECTOR: number[] =
+      const HORIZONTAL_VECTOR: Vector = [this.velocityVector[0], this.velocityVector[1], 0]
+      if (VectorMath.getMagnitude(HORIZONTAL_VECTOR) > this.maxMovingSpeed) {
+        const CORRECTED_VECTOR: Vector =
           VectorMath.convertUnitVectorToVector(
-            VectorMath.convertVectorToUnitVector(HV_VECTOR), this.maxMovingSpeed
+            VectorMath.convertVectorToUnitVector(HORIZONTAL_VECTOR), this.maxMovingSpeed
           )
         this.velocityVector[0] = CORRECTED_VECTOR[0]
         this.velocityVector[1] = CORRECTED_VECTOR[1]
@@ -129,9 +129,9 @@ class Player {
     } else if (INTENDED_MOVEMENT_DIRECTION[0] === 0 && INTENDED_MOVEMENT_DIRECTION[1] === 0) {
       // check for deceleration
       // decelerate character
-      const DECELERATE_DIRECTION: number[] =
+      const DECELERATE_DIRECTION: Vector =
         VectorMath.convertVectorToUnitVector(VectorMath.scalarMultiply(this.velocityVector, -1))
-      const INTENDED_DECELERATION_VECTOR: number[] = 
+      const INTENDED_DECELERATION_VECTOR: Vector = 
         VectorMath.convertUnitVectorToVector(DECELERATE_DIRECTION, this.acceleration)
       if (
         VectorMath.getMagnitude(INTENDED_DECELERATION_VECTOR) >
@@ -174,7 +174,6 @@ class Player {
     } else {
       this.grounded = false
     }
-    new UpdatePlayerPositionToFirebaseCommand(this).execute()
   }
 
   public updatePosition(): void {
@@ -211,20 +210,6 @@ class Player {
     return false;
   }
 
-  public pointInCharacterAtLocation(px: number, py: number, pz: number, cx: number, cy: number, cz: number): boolean {
-    if (
-      px >= cx - Player.size / 2 &&
-      px <= cx + Player.size / 2 &&
-      py >= cy - Player.size / 2 &&
-      py <= cy + Player.size / 2 &&
-      pz <= cz &&
-      pz >= cz - Player.size
-    ) {
-      return true;
-    }
-    return false
-  }
-
 
   public collideWithWall(): boolean {
     const VERTICES: number[][] = [
@@ -252,8 +237,8 @@ class Player {
     const MAP_LENGTH_Y: number = Game.instance.gameMap.map[0].length * GameMap.tileSize;
     const MAP_LENGTH_X: number = Game.instance.gameMap.map[0][0].length * GameMap.tileSize
 
-    const RAY_VELOCITY: number[] = VectorMath.convertYawAndPitchToUnitVector([yaw, pitch])
-    const PLAYER_POSITION: number[] = [this._x, this._y, this._z]
+    const RAY_VELOCITY: Vector = VectorMath.convertYawAndPitchToUnitVector([yaw, pitch])
+    const PLAYER_POSITION: Position = [this._x, this._y, this._z]
 
     // calculate the closest x, y, z axis collision, skip empty space, take shortest distance
     let XCollisionResults: number[] = [10000, 0];
@@ -267,7 +252,7 @@ class Player {
 
     // CHECK PLANE XY COLLISION
     if (checkXYPlaneCollision) {
-      const NORMAL_VECTOR: number[] = [0, 0, 1];
+      const NORMAL_VECTOR: Vector = [0, 0, 1];
       let distanceToClosestXYPlane: number
       let planeZLevelMultiplier: number = 1
       if (RAY_VELOCITY[2] > 0) {
@@ -280,7 +265,7 @@ class Player {
 
       let planeZLevel: number = this._z + distanceToClosestXYPlane
       while (true) {
-        const POI: number[] = VectorMath.linePlaneIntersection(
+        const POI: Position = VectorMath.linePlaneIntersection(
           NORMAL_VECTOR,
           [0, 0, planeZLevel], 
           PLAYER_POSITION, 
@@ -298,7 +283,7 @@ class Player {
             [Math.floor(POI[0] / GameMap.tileSize)] === 1
           ) {
             // ray hit
-            const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION)
+            const DISTANCE: number = VectorMath.getDistance(POI, PLAYER_POSITION)
             const HIT_X: number = Math.abs(POI[0] % GameMap.tileSize)
             const HIT_Y: number = Math.abs(POI[1] % GameMap.tileSize)
             
@@ -306,7 +291,7 @@ class Player {
             // Since POI Calculations are precise, sometimes it gets HIT_X = 64 (boundary)
             // So the wall Texture array access will exceed length
 
-            const PIXEL_COLOR = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)]
+            const PIXEL_COLOR: number = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)]
             ZCollisionResults = [DISTANCE, PIXEL_COLOR]
             break
           }
@@ -321,7 +306,7 @@ class Player {
 
     // CHECK RAY YZ COLLISION
     if (checkYZPlaneCollision) {
-      const NORMAL_VECTOR: number[] = [1, 0, 0];
+      const NORMAL_VECTOR: Vector = [1, 0, 0];
 
       let distanceToClosestYZPlane: number
       let planeXLevelMultiplier: number = 1
@@ -335,7 +320,7 @@ class Player {
 
       let planeXLevel: number = this._x + distanceToClosestYZPlane
       while (true) {
-        const POI: number[] = VectorMath.linePlaneIntersection(
+        const POI: Position = VectorMath.linePlaneIntersection(
           NORMAL_VECTOR,
           [planeXLevel, 0, 0], 
           PLAYER_POSITION, 
@@ -353,10 +338,10 @@ class Player {
             [Math.floor(POI[0] / GameMap.tileSize)] === 1
           ) {
             // ray hit
-            const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION)
+            const DISTANCE: number = VectorMath.getDistance(POI, PLAYER_POSITION)
             const HIT_Y: number = Math.abs(POI[1] % GameMap.tileSize)
             const HIT_Z: number = Math.abs(GameMap.tileSize - (POI[2] % GameMap.tileSize)) * 0.99
-            const PIXEL_COLOR = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)]
+            const PIXEL_COLOR: number = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)]
             XCollisionResults = [DISTANCE, PIXEL_COLOR]
             break
           }
@@ -372,7 +357,7 @@ class Player {
 
     // CHECK PLANE XZ COLLISION
     if (checkXZPlaneCollision) {
-      const NORMAL_VECTOR: number[] = [0, 1, 0];
+      const NORMAL_VECTOR: Vector = [0, 1, 0];
 
       let distanceToClosestXZPlane: number
       let planeYLevelMultiplier: number = 1
@@ -385,7 +370,7 @@ class Player {
       }
       let planeYLevel: number = this._y + distanceToClosestXZPlane
       while (true) {
-        const POI: number[] = VectorMath.linePlaneIntersection(
+        const POI: Position = VectorMath.linePlaneIntersection(
           NORMAL_VECTOR,
           [0, planeYLevel, 0], 
           PLAYER_POSITION, 
@@ -403,11 +388,11 @@ class Player {
             [Math.floor(POI[0] / GameMap.tileSize)] === 1
           ) {
             // ray hit
-            const DISTANCE = VectorMath.getDistance(POI, PLAYER_POSITION)
+            const DISTANCE: number = VectorMath.getDistance(POI, PLAYER_POSITION)
             const HIT_X: number = Math.abs(POI[0] % GameMap.tileSize)
             const HIT_Z: number = Math.abs(GameMap.tileSize - (POI[2] % GameMap.tileSize)) * 0.99
 
-            const PIXEL_COLOR = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_X / GameMap.wallBitSize)]
+            const PIXEL_COLOR: number = GameMap.wallTexture[0][Math.floor(HIT_Z / GameMap.wallBitSize)][Math.floor(HIT_X / GameMap.wallBitSize)]
             YCollisionResults = [DISTANCE, PIXEL_COLOR]
             break
           }
@@ -444,16 +429,16 @@ class Player {
   }
 
 
-  public getShortestRayCollisionToPlayer(rayVector: number[]): number[] {
+  public getShortestRayCollisionToPlayer(rayVector: Vector): number[] {
     let shortestDistance: number = 1000000;
     let color: number = 0
 
     const CHARACTERS_POSITIONS: { x: number, y: number, z: number, color: number }[] = Object.values(Game.instance.otherPlayers)
     
     for (let char of CHARACTERS_POSITIONS) { 
-      const charMin: number[] = [char.x - Player.size / 2, char.y - Player.size / 2, char.z - Player.size]
-      const charMax: number[] = [char.x + Player.size / 2, char.y + Player.size / 2, char.z]
-      const INTERSECTIONS: number[][] | null = VectorMath.findLineCubeIntersections(
+      const charMin: Position = [char.x - Player.size / 2, char.y - Player.size / 2, char.z - Player.size]
+      const charMax: Position = [char.x + Player.size / 2, char.y + Player.size / 2, char.z]
+      const INTERSECTIONS: Position[] | null = VectorMath.findLineCubeIntersections(
         [this._x, this._y, this._z], 
         rayVector, 
         charMin, 
@@ -462,7 +447,7 @@ class Player {
 
       if (INTERSECTIONS) {
         for (let point of INTERSECTIONS) { 
-          const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point)
+          const DISTANCE: number = VectorMath.getDistance([this._x, this._y, this._z], point)
           if (DISTANCE < shortestDistance) {
             shortestDistance = DISTANCE
             color = char.color

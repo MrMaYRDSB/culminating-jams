@@ -12,7 +12,7 @@ import {
   //@ts-ignore Import module
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
-import { VectorMath } from "./Vector.js";
+import { Vector, VectorMath, Direction } from "./Vector.js";
 
 
 class Game {
@@ -94,17 +94,17 @@ class Game {
     const TIME: number = performance.now()
 
     const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(this.player.fov / 2)
-    const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR: number[] =
+    const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR: Vector =
       VectorMath.convertYawAndPitchToUnitVector([this.player.yaw, this.player.pitch])
-    const PLAYER_TO_VIEWPORT_CENTER_VECTOR: number[] =
+    const PLAYER_TO_VIEWPORT_CENTER_VECTOR: Vector =
       VectorMath.convertUnitVectorToVector(PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR, ADJACENT_LENGTH_MAGNITUDE)
     
     // 1 unit vector from the left of the view port to the right
-    const PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR: number[] = 
+    const PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR: Vector = 
       VectorMath.convertYawAndPitchToUnitVector([this.player.yaw + Math.PI / 2, 0])
     
     // 1 unit vector from the top of the viewport to the bottom
-    let PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR: number[]
+    let PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR: Vector
     
     if (this.player.pitch >= 0) {
       PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR =
@@ -115,7 +115,7 @@ class Game {
     }
     // bruh opposite direction != -1 * yaw, was stuck for 2 hours
 
-    let playerToViewportTopLeftVector: number[] = VectorMath.addVectors(
+    let playerToViewportTopLeftVector: Vector = VectorMath.addVectors(
       PLAYER_TO_VIEWPORT_CENTER_VECTOR,
       VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, -Canvas.WIDTH/2)
     )
@@ -162,20 +162,19 @@ class Game {
         
 
 
-        let viewportTopLeftToPointVector: number[] =
+        let viewportTopLeftToPointVector: Vector =
           VectorMath.addVectors(
             VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x),
             VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y)
           );
-        let vectorFromPlayerToPoint: number[] = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector)
-        let rayAngles: number[] = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint)
+        let vectorFromPlayerToPoint: Vector = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector)
+        let rayAngles: Direction = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint)
 
-        // replace with angles[0] and angles[1] later
-        const RAW_RAY_DISTANCE = this.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+        const RAW_RAY_DISTANCE: number[] = this.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
         
         // custom shading
         // render the pixel
-        const COLOR = PIXEL_COLORS[RAW_RAY_DISTANCE[1]]
+        const COLOR: number[] = PIXEL_COLORS[RAW_RAY_DISTANCE[1]]
         const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 0.7) 
 
         Utilities.drawPixel(x, y, `rgb(

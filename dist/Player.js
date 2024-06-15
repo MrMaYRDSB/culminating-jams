@@ -91,9 +91,9 @@ class Player {
             this.velocityVector[0] += INTENDED_ACCELERATION_VECTOR[0];
             this.velocityVector[1] += INTENDED_ACCELERATION_VECTOR[1];
             // limit horizontal movement speed
-            const HV_VECTOR = [this.velocityVector[0], this.velocityVector[1], 0];
-            if (VectorMath.getMagnitude(HV_VECTOR) > this.maxMovingSpeed) {
-                const CORRECTED_VECTOR = VectorMath.convertUnitVectorToVector(VectorMath.convertVectorToUnitVector(HV_VECTOR), this.maxMovingSpeed);
+            const HORIZONTAL_VECTOR = [this.velocityVector[0], this.velocityVector[1], 0];
+            if (VectorMath.getMagnitude(HORIZONTAL_VECTOR) > this.maxMovingSpeed) {
+                const CORRECTED_VECTOR = VectorMath.convertUnitVectorToVector(VectorMath.convertVectorToUnitVector(HORIZONTAL_VECTOR), this.maxMovingSpeed);
                 this.velocityVector[0] = CORRECTED_VECTOR[0];
                 this.velocityVector[1] = CORRECTED_VECTOR[1];
             }
@@ -142,7 +142,6 @@ class Player {
         else {
             this.grounded = false;
         }
-        new UpdatePlayerPositionToFirebaseCommand(this).execute();
     }
     updatePosition() {
         this.modifyVelocityVectorBasedOnIntendedVector();
@@ -167,17 +166,6 @@ class Player {
     }
     pointInWall(x, y, z) {
         if (Game.instance.gameMap.map[Math.floor(z / GameMap.tileSize)][Math.floor(y / GameMap.tileSize)][Math.floor(x / GameMap.tileSize)] !== 0) {
-            return true;
-        }
-        return false;
-    }
-    pointInCharacterAtLocation(px, py, pz, cx, cy, cz) {
-        if (px >= cx - Player.size / 2 &&
-            px <= cx + Player.size / 2 &&
-            py >= cy - Player.size / 2 &&
-            py <= cy + Player.size / 2 &&
-            pz <= cz &&
-            pz >= cz - Player.size) {
             return true;
         }
         return false;
