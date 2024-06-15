@@ -1,8 +1,8 @@
 import { Canvas } from "./Canvas.js";
 
 class MouseLockClient {
-  readonly requestMouseLock: Function;
-  readonly exitMouseLock: Function;
+  readonly requestMouseLock: Function | undefined;
+  readonly exitMouseLock: Function | undefined;
   constructor() {
     const havePointerLock = 'pointerLockElement' in document ||
     'mozPointerLockElement' in document ||
@@ -20,8 +20,6 @@ class MouseLockClient {
         document.mozExitPointerLock ||
         //@ts-ignorets-ignore
         document.webkitExitPointerLock;
-    } else {
-      throw new Error("Game cannot be launched, browser does not support mouse lock feature")
     }
   }
 }

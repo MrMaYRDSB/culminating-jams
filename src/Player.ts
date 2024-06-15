@@ -89,18 +89,20 @@ class Player {
     const rightV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI / 2, 0])
     
     let vectorSum: Vector = [0, 0, 0];
-    if (Game.instance.controller.sKeyPressed) {
-      vectorSum = VectorMath.addVectors(vectorSum, backwardV)
-    } 
-    if (Game.instance.controller.wKeyPressed) {
-      vectorSum = VectorMath.addVectors(vectorSum, forwardV)
-    } 
-    if (Game.instance.controller.aKeyPressed) {
-      vectorSum = VectorMath.addVectors(vectorSum, leftV)
-    } 
-    if (Game.instance.controller.dKeyPressed) {
-      vectorSum = VectorMath.addVectors(vectorSum, rightV)
-    } 
+    if (!Game.instance.isPaused) {
+      if (Game.instance.controller.sKeyPressed) {
+        vectorSum = VectorMath.addVectors(vectorSum, backwardV)
+      } 
+      if (Game.instance.controller.wKeyPressed) {
+        vectorSum = VectorMath.addVectors(vectorSum, forwardV)
+      } 
+      if (Game.instance.controller.aKeyPressed) {
+        vectorSum = VectorMath.addVectors(vectorSum, leftV)
+      } 
+      if (Game.instance.controller.dKeyPressed) {
+        vectorSum = VectorMath.addVectors(vectorSum, rightV)
+      } 
+    }
     return VectorMath.convertVectorToUnitVector(vectorSum);
   }
 
@@ -177,16 +179,15 @@ class Player {
   }
 
   public updatePosition(): void {
-    if (Game.instance.controller.spaceKeyPressed) {
-      this.jump()
-    }
     this.modifyVelocityVectorBasedOnIntendedVector()
     this.moveX()
     this.moveY()
+    if (Game.instance.controller.spaceKeyPressed && !Game.instance.isPaused) {
+      this.jump()
+    }
     this.updateVerticalMovementDueToGravity()
     new UpdatePlayerPositionToFirebaseCommand(this).execute()
   }
-
 
   public updateVerticalMovementDueToGravity(): void {
     if (!this.grounded) {

@@ -18,9 +18,6 @@ class MouseLockClient {
                 //@ts-ignorets-ignore
                 document.webkitExitPointerLock;
         }
-        else {
-            throw new Error("Game cannot be launched, browser does not support mouse lock feature");
-        }
     }
 }
 export { MouseLockClient };

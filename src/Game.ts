@@ -28,8 +28,14 @@ class Game {
   readonly gravitationalAccelerationConstant: number = 1
   readonly terminalVelocity: number = 12
   readonly maxRenderDistance: number = 8 * GameMap.tileSize;
+  readonly pauseMenuBrightnessMultiplier: number = 0.2
+  readonly defaultBrightnessMultiplier: number = 0.7;
+  public brightnessMultiplier: number = this.defaultBrightnessMultiplier;
+
+  public isPaused: boolean = true;
   
-  private mainMenu: CompositeMenu = new CompositeMenu("main menu")
+  private mainMenu: CompositeMenu = new CompositeMenu("JamesCraft")
+  private pauseMenu: CompositeMenu = new CompositeMenu("Game Paused")
 
   public otherPlayers = {}
 
@@ -77,6 +83,16 @@ class Game {
     )
     START_BUTTON.addCommand(new StartGameCommand())
     this.mainMenu.addMenuButton(START_BUTTON)
+  }
+
+
+  public composePauseMenu(): void {
+    const RESUME_BUTTON: MenuButton = new MenuButton(
+      Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
+      Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2,
+      "RESUME_GAME"
+    )
+    this.pauseMenu.addMenuButton(RESUME_BUTTON);
   }
 
   public endGame() {
@@ -175,7 +191,7 @@ class Game {
         // custom shading
         // render the pixel
         const COLOR: number[] = PIXEL_COLORS[RAW_RAY_DISTANCE[1]]
-        const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 0.7) 
+        const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 1) * this.brightnessMultiplier
 
         Utilities.drawPixel(x, y, `rgb(
           ${Math.floor(COLOR[0] * brightness)},

@@ -1,7 +1,9 @@
-import { HandleMouseClickCommand, HandleMouseMoveCommand } from "./Command.js";
+import { HandleMouseClickCommand, HandleMouseMoveCommand, Command } from "./Command.js";
 import { Canvas } from "./Canvas.js";
 import { Player } from "./Player.js";
 import { MouseLockClient } from "./MouseLockClient.js";
+import { Game } from "./Game.js";
+
 
 
 
@@ -52,8 +54,10 @@ class PlayerController {
   protected mousePositionX: number = 0;
   protected mousePositionY: number = 0;
   private _mouseClickCommand: HandleMouseClickCommand | undefined;
-  private _mouseMoveCommand: HandleMouseMoveCommand | undefined
+  private _mouseMoveCommand: HandleMouseMoveCommand | undefined;
 
+  private _escKeyPressedCommand: Command | undefined;
+  private _pointerLockChangeCommand: Command | undefined;
 
   public get mouseClickCommand(): HandleMouseClickCommand | undefined {
     return this._mouseClickCommand
@@ -84,7 +88,7 @@ class PlayerController {
       if (e.key === " ") {
         this._spaceKeyPressed = true;
       }
-      if (e.key === "esc") {
+      if (e.key === "Escape") {
         this._escKeyPressed = true
       }
     });
@@ -105,18 +109,46 @@ class PlayerController {
       if (e.key === " ") {
         this._spaceKeyPressed = false
       }
-      if (e.key === "esc") {
+      if (e.key === "Escape") {
+        if (this._escKeyPressed === true && this._escKeyPressedCommand !== undefined) {
+          this._escKeyPressedCommand.execute()
+        }
         this._escKeyPressed = false;
       }
     });
+
+    document.addEventListener("pointerlockchange", (e) => {
+      if (this._pointerLockChangeCommand !== undefined) {
+        this._pointerLockChangeCommand.execute()
+      }
+    })
   }
+
+
+  public clearInput() {
+    this._aKeyPressed = false;
+    this._wKeyPressed = false;
+    this._sKeyPressed = false;
+    this._dKeyPressed = false;
+    this._spaceKeyPressed = false;
+    this._escKeyPressed = false;
+  }
+
 
   public assignMouseClickCommand(c: HandleMouseClickCommand | undefined) {
     this._mouseClickCommand = c;
   }
 
+  public assignEscKeyPressedCommand(c: Command | undefined): void {
+    this._escKeyPressedCommand = c
+  } 
+
   public assignMouseMoveCommand(c: HandleMouseMoveCommand | undefined) {
     this._mouseMoveCommand = c
+  }
+
+  public assignPointerLockChangeCommand(c: Command | undefined) {
+    this._pointerLockChangeCommand = c
   }
 
   private handleMouseMoveEvent(event: MouseEvent) {
@@ -144,9 +176,7 @@ class PlayerController {
       this.mousePositionX >= 0 &&
       this.mousePositionY >= 0
     ) {
-      if (this._mouseClickCommand === undefined) {
-        throw new Error("no on click command assigned");
-      } else {
+      if (this._mouseClickCommand !== undefined) {
         this._mouseClickCommand
           .assignCoordinates(this.mousePositionX, this.mousePositionY)
           .execute();

@@ -37,8 +37,17 @@ class StartGameCommand {
     execute() {
         Canvas.instance.screen.requestPointerLock();
         Game.instance.startGame();
-        Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand());
-        Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand());
+        new SetMainGameControlsCommand().execute();
+        Game.instance.controller.assignEscKeyPressedCommand(new MainGameEscapeKeyPressedCommand());
+        Game.instance.controller.assignPointerLockChangeCommand(new TogglePauseCommand());
+    }
+}
+class ExitGameCommand {
+    execute() {
+        new ExitGameCommand().execute();
+        Game.instance.isPaused = true;
+        new UnsetMainGameControlsCommand().execute();
+        Game.instance.controller.assignEscKeyPressedCommand(undefined);
     }
 }
 class DisplayMenuAndSetMouseControllerCommand {
@@ -49,15 +58,63 @@ class DisplayMenuAndSetMouseControllerCommand {
     execute() {
         this.menu.drawMenuAndMenuButtons();
         Game.instance.controller.assignMouseClickCommand(new MenuMouseClickedEventHandlerCommand(this.menu));
+        Game.instance.controller.assignMouseMoveCommand(undefined);
+    }
+}
+class MainGameEscapeKeyPressedCommand {
+    execute() {
+        new LockPointerCommand().execute();
+    }
+}
+class TogglePauseCommand {
+    execute() {
+        const IS_PAUSED = Game.instance.isPaused;
+        if (IS_PAUSED) { // if paused, unpause the game
+            new SetMainGameControlsCommand().execute();
+            Game.instance.brightnessMultiplier = Game.instance.defaultBrightnessMultiplier;
+            Game.instance.isPaused = false;
+        }
+        else { // otherwise, pause the game
+            // undo the last mouse movement to prevent sudden view changes (unpreventable bug)
+            // Since first esc press is not registered by event listener, the only way to toggle
+            // pause menu based on a singular click is to detect changes in the state of mouse lock
+            // however, the mouse is sometimes unlocked and its movement registered before the change can be detected, 
+            // resulting in a sudden shift in mouse movement
+            new UndoLastMouseMoveCommand(Game.instance.controller.mouseMoveCommand).execute();
+            new UnsetMainGameControlsCommand().execute();
+            Game.instance.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier;
+            Game.instance.controller.clearInput();
+            Game.instance.isPaused = true;
+        }
     }
 }
 class HandleMouseMoveCommand {
     dx = 0;
     dy = 0;
+    _previousDX;
+    _previousDY;
+    get previousDX() {
+        return this._previousDX;
+    }
+    get previousDY() {
+        return this._previousDY;
+    }
     assignMovement(dx, dy) {
         this.dx = dx;
         this.dy = dy;
+        this._previousDX = this.dx;
+        this._previousDY = this.dy;
         return this;
+    }
+}
+class UndoLastMouseMoveCommand {
+    c;
+    constructor(c) {
+        this.c = c;
+    }
+    execute() {
+        Game.instance.player.rotatePitch(this.c.previousDY * Game.instance.player.rotationSpeed * Game.instance.controller.sensitivity);
+        Game.instance.player.rotateYaw(-this.c.previousDX * Game.instance.player.rotationSpeed * Game.instance.controller.sensitivity);
     }
 }
 class MainGameHandleMouseMoveCommand extends HandleMouseMoveCommand {
@@ -82,35 +139,43 @@ class UpdatePlayerPositionToFirebaseCommand {
 }
 class MainGameMouseClickCommand extends HandleMouseClickCommand {
     execute() {
-        new ToggleMouseMovementCommand().execute();
     }
 }
-class ToggleMouseMovementCommand {
+class LockPointerCommand {
     execute() {
         const havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
             'webkitPointerLockElement' in document;
         if (havePointerLock) {
-            if (Game.instance.controller.mouseMoveCommand === undefined) {
-                Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand());
-                Canvas.instance.screen.requestPointerLock = Canvas.instance.screen.requestPointerLock ||
-                    //@ts-ignorets-ignore
-                    Canvas.instance.screen.mozRequestPointerLock ||
-                    //@ts-ignorets-ignore
-                    Canvas.instance.screen.webkitRequestPointerLock;
-                Canvas.instance.screen.requestPointerLock();
-            }
-            else {
-                Game.instance.controller.assignMouseMoveCommand(undefined);
-                // Ask the browser to release the pointer
-                document.exitPointerLock = document.exitPointerLock ||
-                    //@ts-ignorets-ignore
-                    document.mozExitPointerLock ||
-                    //@ts-ignorets-ignore
-                    document.webkitExitPointerLock;
-                document.exitPointerLock();
-            }
+            Canvas.instance.screen.requestPointerLock = Canvas.instance.screen.requestPointerLock ||
+                //@ts-ignorets-ignore
+                Canvas.instance.screen.mozRequestPointerLock ||
+                //@ts-ignorets-ignore
+                Canvas.instance.screen.webkitRequestPointerLock;
+            Canvas.instance.screen.requestPointerLock();
         }
+    }
+}
+class UnlockPointerCommand {
+    execute() {
+        document.exitPointerLock = document.exitPointerLock ||
+            //@ts-ignorets-ignore
+            document.mozExitPointerLock ||
+            //@ts-ignorets-ignore
+            document.webkitExitPointerLock;
+        document.exitPointerLock();
+    }
+}
+class SetMainGameControlsCommand {
+    execute() {
+        Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand());
+        Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand());
+    }
+}
+class UnsetMainGameControlsCommand {
+    execute() {
+        Game.instance.controller.assignMouseMoveCommand(undefined);
+        Game.instance.controller.assignMouseClickCommand(undefined);
     }
 }
 class ClearAllPlayersFromDatabaseCommand {
@@ -123,5 +188,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand };
 //# sourceMappingURL=Command.js.map

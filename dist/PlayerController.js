@@ -36,6 +36,8 @@ class PlayerController {
     mousePositionY = 0;
     _mouseClickCommand;
     _mouseMoveCommand;
+    _escKeyPressedCommand;
+    _pointerLockChangeCommand;
     get mouseClickCommand() {
         return this._mouseClickCommand;
     }
@@ -62,7 +64,7 @@ class PlayerController {
             if (e.key === " ") {
                 this._spaceKeyPressed = true;
             }
-            if (e.key === "esc") {
+            if (e.key === "Escape") {
                 this._escKeyPressed = true;
             }
         });
@@ -82,16 +84,38 @@ class PlayerController {
             if (e.key === " ") {
                 this._spaceKeyPressed = false;
             }
-            if (e.key === "esc") {
+            if (e.key === "Escape") {
+                if (this._escKeyPressed === true && this._escKeyPressedCommand !== undefined) {
+                    this._escKeyPressedCommand.execute();
+                }
                 this._escKeyPressed = false;
             }
         });
+        document.addEventListener("pointerlockchange", (e) => {
+            if (this._pointerLockChangeCommand !== undefined) {
+                this._pointerLockChangeCommand.execute();
+            }
+        });
+    }
+    clearInput() {
+        this._aKeyPressed = false;
+        this._wKeyPressed = false;
+        this._sKeyPressed = false;
+        this._dKeyPressed = false;
+        this._spaceKeyPressed = false;
+        this._escKeyPressed = false;
     }
     assignMouseClickCommand(c) {
         this._mouseClickCommand = c;
     }
+    assignEscKeyPressedCommand(c) {
+        this._escKeyPressedCommand = c;
+    }
     assignMouseMoveCommand(c) {
         this._mouseMoveCommand = c;
+    }
+    assignPointerLockChangeCommand(c) {
+        this._pointerLockChangeCommand = c;
     }
     handleMouseMoveEvent(event) {
         if (this._mouseMoveCommand !== undefined) {
@@ -113,10 +137,7 @@ class PlayerController {
             this.mousePositionX < Canvas.WIDTH &&
             this.mousePositionX >= 0 &&
             this.mousePositionY >= 0) {
-            if (this._mouseClickCommand === undefined) {
-                throw new Error("no on click command assigned");
-            }
-            else {
+            if (this._mouseClickCommand !== undefined) {
                 this._mouseClickCommand
                     .assignCoordinates(this.mousePositionX, this.mousePositionY)
                     .execute();

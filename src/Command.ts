@@ -57,8 +57,19 @@ class StartGameCommand implements Command {
   public execute(): void {
     Canvas.instance.screen.requestPointerLock();
     Game.instance.startGame()
-    Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand())
-    Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand())
+    new SetMainGameControlsCommand().execute()
+    Game.instance.controller.assignEscKeyPressedCommand(new MainGameEscapeKeyPressedCommand())
+    Game.instance.controller.assignPointerLockChangeCommand(new TogglePauseCommand())
+  }
+}
+
+
+class ExitGameCommand implements Command {
+  public execute(): void {
+    new ExitGameCommand().execute();
+    Game.instance.isPaused = true;
+    new UnsetMainGameControlsCommand().execute();
+    Game.instance.controller.assignEscKeyPressedCommand(undefined)
   }
 }
 
@@ -69,6 +80,41 @@ class DisplayMenuAndSetMouseControllerCommand implements Command {
   public execute(): void {
     this.menu.drawMenuAndMenuButtons();
     Game.instance.controller.assignMouseClickCommand(new MenuMouseClickedEventHandlerCommand(this.menu));
+    Game.instance.controller.assignMouseMoveCommand(undefined)
+  }
+}
+
+
+class MainGameEscapeKeyPressedCommand implements Command {
+  public execute(): void {
+    new LockPointerCommand().execute()
+  }
+}
+
+
+class TogglePauseCommand implements Command {
+
+  public execute(): void {
+    const IS_PAUSED: boolean = Game.instance.isPaused;
+    if (IS_PAUSED) { // if paused, unpause the game
+      new SetMainGameControlsCommand().execute()
+      Game.instance.brightnessMultiplier = Game.instance.defaultBrightnessMultiplier
+      Game.instance.isPaused = false
+    } else { // otherwise, pause the game
+
+
+      // undo the last mouse movement to prevent sudden view changes (unpreventable bug)
+      // Since first esc press is not registered by event listener, the only way to toggle
+      // pause menu based on a singular click is to detect changes in the state of mouse lock
+      // however, the mouse is sometimes unlocked and its movement registered before the change can be detected, 
+      // resulting in a sudden shift in mouse movement
+      new UndoLastMouseMoveCommand(Game.instance.controller.mouseMoveCommand).execute()
+      
+      new UnsetMainGameControlsCommand().execute()
+      Game.instance.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier
+      Game.instance.controller.clearInput();
+      Game.instance.isPaused = true
+    }
   }
 }
 
@@ -76,13 +122,39 @@ class DisplayMenuAndSetMouseControllerCommand implements Command {
 abstract class HandleMouseMoveCommand implements Command {
   protected dx: number = 0;
   protected dy: number = 0
+
+  private _previousDX: number | undefined;
+  private _previousDY: number | undefined;
+
+  public get previousDX(): number {
+    return this._previousDX;
+  }
+
+  public get previousDY(): number {
+    return this._previousDY
+  }
+
   public assignMovement(dx: number, dy: number): HandleMouseMoveCommand {
     this.dx = dx
     this.dy = dy
+    
+    this._previousDX = this.dx;
+    this._previousDY = this.dy
     return this
   }
 
+
   abstract execute(): void;
+}
+
+
+class UndoLastMouseMoveCommand implements Command {
+  constructor(protected c: HandleMouseMoveCommand) { }
+  
+  public execute(): void {
+    Game.instance.player.rotatePitch(this.c.previousDY * Game.instance.player.rotationSpeed * Game.instance.controller.sensitivity)
+    Game.instance.player.rotateYaw(-this.c.previousDX * Game.instance.player.rotationSpeed * Game.instance.controller.sensitivity)
+  }
 }
 
 
@@ -112,39 +184,55 @@ class UpdatePlayerPositionToFirebaseCommand implements Command {
 
 class MainGameMouseClickCommand extends HandleMouseClickCommand implements Command {
   public execute(): void {
-    new ToggleMouseMovementCommand().execute()
+
   }
 }
 
 
-class ToggleMouseMovementCommand implements Command {
+class LockPointerCommand implements Command {
   public execute(): void {
     const havePointerLock = 'pointerLockElement' in document ||
-    'mozPointerLockElement' in document ||
+      'mozPointerLockElement' in document ||
       'webkitPointerLockElement' in document;
     if (havePointerLock) {
-      if (Game.instance.controller.mouseMoveCommand === undefined) {
-        Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand())
+      Canvas.instance.screen.requestPointerLock = Canvas.instance.screen.requestPointerLock ||
+        //@ts-ignorets-ignore
+        Canvas.instance.screen.mozRequestPointerLock ||
+        //@ts-ignorets-ignore
+        Canvas.instance.screen.webkitRequestPointerLock;
+      
 
-        Canvas.instance.screen.requestPointerLock = Canvas.instance.screen.requestPointerLock ||
-          //@ts-ignorets-ignore
-          Canvas.instance.screen.mozRequestPointerLock ||
-          //@ts-ignorets-ignore
-          Canvas.instance.screen.webkitRequestPointerLock;
-        
-        Canvas.instance.screen.requestPointerLock();
-      } else {
-        Game.instance.controller.assignMouseMoveCommand(undefined)
-        // Ask the browser to release the pointer
-        document.exitPointerLock = document.exitPointerLock ||
-          //@ts-ignorets-ignore
-          document.mozExitPointerLock! ||
-          //@ts-ignorets-ignore
-          document.webkitExitPointerLock!;
-        
-        document.exitPointerLock();
-      }
+      Canvas.instance.screen.requestPointerLock();
     }
+  }
+}
+
+
+class UnlockPointerCommand implements Command {
+  public execute(): void {
+    document.exitPointerLock = document.exitPointerLock ||
+    //@ts-ignorets-ignore
+    document.mozExitPointerLock! ||
+    //@ts-ignorets-ignore
+    document.webkitExitPointerLock!;
+  
+    document.exitPointerLock();
+  }
+}
+
+
+class SetMainGameControlsCommand implements Command {
+  public execute(): void {
+    Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand())
+    Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand())
+  }
+}
+
+
+class UnsetMainGameControlsCommand implements Command {
+  public execute(): void {
+    Game.instance.controller.assignMouseMoveCommand(undefined)
+    Game.instance.controller.assignMouseClickCommand(undefined)
   }
 }
 
@@ -174,5 +262,6 @@ export {
   MainGameMouseClickedEventHandlerCommand,
   UpdatePlayerPositionToFirebaseCommand,
   ClearAllPlayersFromDatabaseCommand, 
-  RemoveClientPlayerFromDatabaseCommand
+  RemoveClientPlayerFromDatabaseCommand, 
+  TogglePauseCommand
 }

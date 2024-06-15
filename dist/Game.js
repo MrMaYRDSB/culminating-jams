@@ -24,7 +24,12 @@ class Game {
     gravitationalAccelerationConstant = 1;
     terminalVelocity = 12;
     maxRenderDistance = 8 * GameMap.tileSize;
-    mainMenu = new CompositeMenu("main menu");
+    pauseMenuBrightnessMultiplier = 0.2;
+    defaultBrightnessMultiplier = 0.7;
+    brightnessMultiplier = this.defaultBrightnessMultiplier;
+    isPaused = true;
+    mainMenu = new CompositeMenu("JamesCraft");
+    pauseMenu = new CompositeMenu("Game Paused");
     otherPlayers = {};
     constructor() {
         this.composeMainMenu();
@@ -56,6 +61,10 @@ class Game {
         const START_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2, "start game");
         START_BUTTON.addCommand(new StartGameCommand());
         this.mainMenu.addMenuButton(START_BUTTON);
+    }
+    composePauseMenu() {
+        const RESUME_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2, "RESUME_GAME");
+        this.pauseMenu.addMenuButton(RESUME_BUTTON);
     }
     endGame() {
         clearInterval(this.gameLoop);
@@ -117,7 +126,7 @@ class Game {
                 // custom shading
                 // render the pixel
                 const COLOR = PIXEL_COLORS[RAW_RAY_DISTANCE[1]];
-                const brightness = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 0.7);
+                const brightness = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 1) * this.brightnessMultiplier;
                 Utilities.drawPixel(x, y, `rgb(
           ${Math.floor(COLOR[0] * brightness)},
           ${Math.floor(COLOR[1] * brightness)},
