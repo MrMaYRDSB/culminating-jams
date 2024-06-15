@@ -59,6 +59,19 @@ class VectorMath {
     return [v[0] * s, v[1] * s, v[2] * s]
   }
 
+  public static isSameDirection(v1: Vector, v2: Vector): boolean {
+    const v1UV: Vector = VectorMath.convertVectorToUnitVector(v1)
+    const v2UV: Vector = VectorMath.convertVectorToUnitVector(v2)
+    const DP: number = VectorMath.dotProduct(v1UV, v2UV)
+
+    return Math.abs(DP - 1) < 1e-10;
+
+  }
+
+  public static drawVectorFromP1toP2(p1: Position, p2: Position): Vector {
+    return [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]]
+  }
+
   public static subtractVector(v1: Vector, v2: Vector): Vector {
     return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
   }

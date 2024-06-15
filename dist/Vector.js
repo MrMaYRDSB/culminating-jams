@@ -48,6 +48,15 @@ class VectorMath {
     static scalarMultiply(v, s) {
         return [v[0] * s, v[1] * s, v[2] * s];
     }
+    static isSameDirection(v1, v2) {
+        const v1UV = VectorMath.convertVectorToUnitVector(v1);
+        const v2UV = VectorMath.convertVectorToUnitVector(v2);
+        const DP = VectorMath.dotProduct(v1UV, v2UV);
+        return Math.abs(DP - 1) < 1e-10;
+    }
+    static drawVectorFromP1toP2(p1, p2) {
+        return [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+    }
     static subtractVector(v1, v2) {
         return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
     }

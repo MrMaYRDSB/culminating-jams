@@ -337,10 +337,12 @@ class Player {
             const INTERSECTIONS = VectorMath.findLineCubeIntersections([this._x, this._y, this._z], rayVector, charMin, charMax);
             if (INTERSECTIONS) {
                 for (let point of INTERSECTIONS) {
-                    const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point);
-                    if (DISTANCE < shortestDistance) {
-                        shortestDistance = DISTANCE;
-                        color = char.color;
+                    if (VectorMath.isSameDirection(VectorMath.drawVectorFromP1toP2([this._x, this._y, this._z], point), rayVector)) {
+                        const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point);
+                        if (DISTANCE < shortestDistance) {
+                            shortestDistance = DISTANCE;
+                            color = char.color;
+                        }
                     }
                 }
             }
