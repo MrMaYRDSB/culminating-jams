@@ -23,7 +23,6 @@ class Player {
     grounded = false;
     maxPitch = Math.PI / 2;
     velocityVector = [0, 0, 0];
-    directionVector = [0, 0, 0];
     get x() {
         return this._x;
     }
@@ -166,6 +165,7 @@ class Player {
                 this._z -= this.velocityVector[2];
                 this.velocityVector[2] = 0;
                 this._z += (GameMap.tileSize - (this._z % GameMap.tileSize)) - 1;
+                this.grounded = false;
                 return;
             }
         }
@@ -174,7 +174,6 @@ class Player {
         }
     }
     updatePosition() {
-        this.directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);
         this.modifyVelocityVectorBasedOnIntendedVector();
         this.moveX();
         this.moveY();

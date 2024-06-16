@@ -30,7 +30,6 @@ class Player {
   private maxPitch: number = Math.PI / 2
 
   private velocityVector: Vector = [0, 0, 0]
-  private directionVector: Vector = [0, 0, 0]
   
   public get x(): number {
     return this._x
@@ -203,6 +202,7 @@ class Player {
         this._z -= this.velocityVector[2];
         this.velocityVector[2] = 0
         this._z += (GameMap.tileSize - (this._z % GameMap.tileSize)) - 1
+        this.grounded = false
         return
       }
     } else {
@@ -211,7 +211,6 @@ class Player {
   }
 
   public updatePosition(): void {
-    this.directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch])
     this.modifyVelocityVectorBasedOnIntendedVector()
     this.moveX()
     this.moveY()
