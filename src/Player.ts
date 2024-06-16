@@ -30,6 +30,7 @@ class Player {
   private maxPitch: number = Math.PI / 2
 
   private velocityVector: Vector = [0, 0, 0]
+  private directionVector: Vector = [0, 0, 0]
   
   public get x(): number {
     return this._x
@@ -165,6 +166,14 @@ class Player {
     this._x += this.velocityVector[0]
     if (this.collideWithWall()) {
       this._x -= this.velocityVector[0]
+
+      let distanceToWall: number = 0
+      if (this.velocityVector[0] > 0) {
+        distanceToWall = GameMap.tileSize - (this._x % GameMap.tileSize) - Player.size/2 - 1
+      } else if (this.velocityVector[0] < 0) {
+        distanceToWall = -(this._x % GameMap.tileSize - Player.size / 2) 
+      }
+      this._x += distanceToWall
     }
   }
 
@@ -172,26 +181,37 @@ class Player {
     this._y += this.velocityVector[1]
     if (this.collideWithWall()) {
       this._y -= this.velocityVector[1]
+
+      let distanceToWall: number = 0
+      if (this.velocityVector[1] > 0) {
+        distanceToWall = GameMap.tileSize - (this._y % GameMap.tileSize) - Player.size / 2 - 1
+      } else if (this.velocityVector[1] < 0) {
+        distanceToWall = -(this._y % GameMap.tileSize - Player.size/2)
+      }
+      this._y += distanceToWall
     }
   }
 
   public moveZ(): void {
     this._z += this.velocityVector[2]
     if (this.collideWithWall()) {
+      this._z -= this.velocityVector[2];
       if (this.velocityVector[2] < 0) {
         this.grounded = true
+        this._z -= ((this._z - Player.size) % GameMap.tileSize)
       } else {
         this._z -= this.velocityVector[2];
         this.velocityVector[2] = 0
+        this._z += (GameMap.tileSize - (this._z % GameMap.tileSize)) - 1
         return
       }
-      this._z -= this.velocityVector[2];
     } else {
       this.grounded = false
     }
   }
 
   public updatePosition(): void {
+    this.directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch])
     this.modifyVelocityVectorBasedOnIntendedVector()
     this.moveX()
     this.moveY()

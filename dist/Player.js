@@ -23,6 +23,7 @@ class Player {
     grounded = false;
     maxPitch = Math.PI / 2;
     velocityVector = [0, 0, 0];
+    directionVector = [0, 0, 0];
     get x() {
         return this._x;
     }
@@ -129,32 +130,51 @@ class Player {
         this._x += this.velocityVector[0];
         if (this.collideWithWall()) {
             this._x -= this.velocityVector[0];
+            let distanceToWall = 0;
+            if (this.velocityVector[0] > 0) {
+                distanceToWall = GameMap.tileSize - (this._x % GameMap.tileSize) - Player.size / 2 - 1;
+            }
+            else if (this.velocityVector[0] < 0) {
+                distanceToWall = -(this._x % GameMap.tileSize - Player.size / 2);
+            }
+            this._x += distanceToWall;
         }
     }
     moveY() {
         this._y += this.velocityVector[1];
         if (this.collideWithWall()) {
             this._y -= this.velocityVector[1];
+            let distanceToWall = 0;
+            if (this.velocityVector[1] > 0) {
+                distanceToWall = GameMap.tileSize - (this._y % GameMap.tileSize) - Player.size / 2 - 1;
+            }
+            else if (this.velocityVector[1] < 0) {
+                distanceToWall = -(this._y % GameMap.tileSize - Player.size / 2);
+            }
+            this._y += distanceToWall;
         }
     }
     moveZ() {
         this._z += this.velocityVector[2];
         if (this.collideWithWall()) {
+            this._z -= this.velocityVector[2];
             if (this.velocityVector[2] < 0) {
                 this.grounded = true;
+                this._z -= ((this._z - Player.size) % GameMap.tileSize);
             }
             else {
                 this._z -= this.velocityVector[2];
                 this.velocityVector[2] = 0;
+                this._z += (GameMap.tileSize - (this._z % GameMap.tileSize)) - 1;
                 return;
             }
-            this._z -= this.velocityVector[2];
         }
         else {
             this.grounded = false;
         }
     }
     updatePosition() {
+        this.directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);
         this.modifyVelocityVectorBasedOnIntendedVector();
         this.moveX();
         this.moveY();
