@@ -56,7 +56,6 @@ class ExitGameCommand {
 class RenderViewForPlayerCommand {
     execute() {
         Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
-        const TIME = performance.now();
         const ADJACENT_LENGTH_MAGNITUDE = (Canvas.WIDTH / 2) / Math.tan(Game.instance.player.fov / 2);
         const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR = VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw, Game.instance.player.pitch]);
         const PLAYER_TO_VIEWPORT_CENTER_VECTOR = VectorMath.convertUnitVectorToVector(PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR, ADJACENT_LENGTH_MAGNITUDE);
@@ -92,11 +91,6 @@ class RenderViewForPlayerCommand {
           )`);
             }
         }
-        const TIME_TWO = performance.now();
-        const TIME_DIFF = TIME_TWO - TIME;
-        Canvas.instance.context.font = "24px Arial";
-        Canvas.instance.context.fillStyle = "white";
-        Canvas.instance.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50);
     }
 }
 class DisplayMenuAndSetMouseControllerCommand {

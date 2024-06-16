@@ -80,7 +80,6 @@ class ExitGameCommand implements Command {
 class RenderViewForPlayerCommand implements Command {
   public execute(): void {
     Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
-    const TIME: number = performance.now()
 
     const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(Game.instance.player.fov / 2)
     const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR: Vector =
@@ -138,13 +137,6 @@ class RenderViewForPlayerCommand implements Command {
           )`)
       }
     }
-    
-    const TIME_TWO: number = performance.now()
-    const TIME_DIFF: number = TIME_TWO - TIME;
-    Canvas.instance.context.font = "24px Arial"
-    Canvas.instance.context.fillStyle = "white"
-    Canvas.instance.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50)
-      
   }
 }
 

@@ -78,13 +78,18 @@ class Game {
   public startGame() {
     this.player.setLocation(this.spawnLocation)
     this.player.setDirection(this.spawnDirection)
+
     this.gameLoop = setInterval(() => {
+      const TIME: number = performance.now()
       this.updateFromDatabase()
       this.player.updatePosition()
       this.renderForPlayer()
       if (this.isPaused) {
         new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute()
       }
+      this.context.font = "24px Arial"
+      this.context.fillStyle = "white"
+      this.context.fillText(`MAX FPS: ${Math.round(1000 / (performance.now()-TIME))}`, 50, 50)
     }, this.timeInterval);
   }
 
@@ -100,6 +105,7 @@ class Game {
 
 
   public composePauseMenu(): void {
+    
     const RESUME_BUTTON: MenuButton = new MenuButton(
       Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
       Canvas.HEIGHT / 2 - MenuButton.buttonHeight * 2,
@@ -136,7 +142,6 @@ class Game {
 
   public renderForPlayer() {
     this.clearScreen()
-    const TIME: number = performance.now()
 
     const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(this.player.fov / 2)
     const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR: Vector =
@@ -229,12 +234,6 @@ class Game {
           )`)
       }
     }
-    
-    const TIME_TWO: number = performance.now()
-    const TIME_DIFF: number = TIME_TWO - TIME;
-    this.context.font = "24px Arial"
-    this.context.fillStyle = "white"
-    this.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50)
   }
   
   public static get instance(): Game {

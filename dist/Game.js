@@ -60,12 +60,16 @@ class Game {
         this.player.setLocation(this.spawnLocation);
         this.player.setDirection(this.spawnDirection);
         this.gameLoop = setInterval(() => {
+            const TIME = performance.now();
             this.updateFromDatabase();
             this.player.updatePosition();
             this.renderForPlayer();
             if (this.isPaused) {
                 new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute();
             }
+            this.context.font = "24px Arial";
+            this.context.fillStyle = "white";
+            this.context.fillText(`MAX FPS: ${Math.round(1000 / (performance.now() - TIME))}`, 50, 50);
         }, this.timeInterval);
     }
     composeMainMenu() {
@@ -96,7 +100,6 @@ class Game {
     }
     renderForPlayer() {
         this.clearScreen();
-        const TIME = performance.now();
         const ADJACENT_LENGTH_MAGNITUDE = (Canvas.WIDTH / 2) / Math.tan(this.player.fov / 2);
         const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR = VectorMath.convertYawAndPitchToUnitVector([this.player.yaw, this.player.pitch]);
         const PLAYER_TO_VIEWPORT_CENTER_VECTOR = VectorMath.convertUnitVectorToVector(PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR, ADJACENT_LENGTH_MAGNITUDE);
@@ -156,11 +159,6 @@ class Game {
           )`);
             }
         }
-        const TIME_TWO = performance.now();
-        const TIME_DIFF = TIME_TWO - TIME;
-        this.context.font = "24px Arial";
-        this.context.fillStyle = "white";
-        this.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50);
     }
     static get instance() {
         if (Game._instance === undefined) {
