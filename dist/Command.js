@@ -4,6 +4,10 @@ import { update, ref, set
  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Canvas } from "./Canvas.js";
+import { VectorMath } from "./Vector.js";
+import { GameMap } from "./Map.js";
+import { PIXEL_COLORS } from "./Map.js";
+import { Utilities } from "./Utilities.js";
 class HandleMouseClickCommand {
     mousePositionX = 0;
     mousePositionY = 0;
@@ -44,10 +48,55 @@ class StartGameCommand {
 }
 class ExitGameCommand {
     execute() {
-        new ExitGameCommand().execute();
-        Game.instance.isPaused = true;
+        Game.instance.endGame();
         new UnsetMainGameControlsCommand().execute();
-        Game.instance.controller.assignEscKeyPressedCommand(undefined);
+        new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute();
+    }
+}
+class RenderViewForPlayerCommand {
+    execute() {
+        Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
+        const TIME = performance.now();
+        const ADJACENT_LENGTH_MAGNITUDE = (Canvas.WIDTH / 2) / Math.tan(Game.instance.player.fov / 2);
+        const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR = VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw, Game.instance.player.pitch]);
+        const PLAYER_TO_VIEWPORT_CENTER_VECTOR = VectorMath.convertUnitVectorToVector(PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR, ADJACENT_LENGTH_MAGNITUDE);
+        // 1 unit vector from the left of the view port to the right
+        const PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR = VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw + Math.PI / 2, 0]);
+        // 1 unit vector from the top of the viewport to the bottom
+        let PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR;
+        if (Game.instance.player.pitch >= 0) {
+            PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR =
+                VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw, Game.instance.player.pitch - Math.PI / 2]);
+        }
+        else {
+            PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR =
+                VectorMath.convertYawAndPitchToUnitVector([Math.PI + Game.instance.player.yaw, -(Math.PI / 2 + Game.instance.player.pitch)]);
+        }
+        // bruh opposite direction != -1 * yaw, was stuck for 2 hours
+        let playerToViewportTopLeftVector = VectorMath.addVectors(PLAYER_TO_VIEWPORT_CENTER_VECTOR, VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, -Canvas.WIDTH / 2));
+        playerToViewportTopLeftVector = VectorMath.addVectors(playerToViewportTopLeftVector, VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, -Canvas.HEIGHT / 2));
+        for (let x = 0; x < Canvas.WIDTH; x += Game.instance.resolution) {
+            for (let y = 0; y < Canvas.HEIGHT; y += Game.instance.resolution) {
+                let viewportTopLeftToPointVector = VectorMath.addVectors(VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x), VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y));
+                let vectorFromPlayerToPoint = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector);
+                let rayAngles = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint);
+                const RAW_RAY_DISTANCE = Game.instance.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+                // custom shading
+                // render the pixel
+                const COLOR = PIXEL_COLORS[RAW_RAY_DISTANCE[1]];
+                const brightness = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 1) * Game.instance.brightnessMultiplier;
+                Utilities.drawPixel(x, y, `rgb(
+          ${Math.floor(COLOR[0] * brightness)},
+          ${Math.floor(COLOR[1] * brightness)},
+          ${Math.floor(COLOR[2] * brightness)}
+          )`);
+            }
+        }
+        const TIME_TWO = performance.now();
+        const TIME_DIFF = TIME_TWO - TIME;
+        Canvas.instance.context.font = "24px Arial";
+        Canvas.instance.context.fillStyle = "white";
+        Canvas.instance.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50);
     }
 }
 class DisplayMenuAndSetMouseControllerCommand {
@@ -188,5 +237,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand };
 //# sourceMappingURL=Command.js.map

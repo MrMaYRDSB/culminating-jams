@@ -9,6 +9,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Canvas } from "./Canvas.js";
+import { VectorMath, Vector, Position, Direction } from "./Vector.js";
+import { GameMap } from "./Map.js";
+import { PIXEL_COLORS } from "./Map.js";
+import { Utilities } from "./Utilities.js";
 
 interface Command {
   execute(): void;
@@ -66,10 +70,81 @@ class StartGameCommand implements Command {
 
 class ExitGameCommand implements Command {
   public execute(): void {
-    new ExitGameCommand().execute();
-    Game.instance.isPaused = true;
+    Game.instance.endGame()
     new UnsetMainGameControlsCommand().execute();
-    Game.instance.controller.assignEscKeyPressedCommand(undefined)
+    new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute()
+  }
+}
+
+
+class RenderViewForPlayerCommand implements Command {
+  public execute(): void {
+    Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
+    const TIME: number = performance.now()
+
+    const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(Game.instance.player.fov / 2)
+    const PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR: Vector =
+      VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw, Game.instance.player.pitch])
+    const PLAYER_TO_VIEWPORT_CENTER_VECTOR: Vector =
+      VectorMath.convertUnitVectorToVector(PLAYER_TO_VIEWPORT_CENTER_UNIT_VECTOR, ADJACENT_LENGTH_MAGNITUDE)
+    
+    // 1 unit vector from the left of the view port to the right
+    const PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR: Vector = 
+      VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw + Math.PI / 2, 0])
+    
+    // 1 unit vector from the top of the viewport to the bottom
+    let PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR: Vector
+    
+    if (Game.instance.player.pitch >= 0) {
+      PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR =
+        VectorMath.convertYawAndPitchToUnitVector([Game.instance.player.yaw, Game.instance.player.pitch - Math.PI / 2]);
+    } else {
+      PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR =
+        VectorMath.convertYawAndPitchToUnitVector([Math.PI + Game.instance.player.yaw, -(Math.PI / 2 + Game.instance.player.pitch)]);
+    }
+    // bruh opposite direction != -1 * yaw, was stuck for 2 hours
+
+    let playerToViewportTopLeftVector: Vector = VectorMath.addVectors(
+      PLAYER_TO_VIEWPORT_CENTER_VECTOR,
+      VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, -Canvas.WIDTH/2)
+    )
+    playerToViewportTopLeftVector = VectorMath.addVectors(
+      playerToViewportTopLeftVector,
+      VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, -Canvas.HEIGHT/2)
+    )
+    for (let x: number = 0; x < Canvas.WIDTH; x += Game.instance.resolution) {
+
+      for (let y: number = 0; y < Canvas.HEIGHT; y += Game.instance.resolution) {
+
+        let viewportTopLeftToPointVector: Vector =
+          VectorMath.addVectors(
+            VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x),
+            VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y)
+          );
+        let vectorFromPlayerToPoint: Vector = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector)
+        let rayAngles: Direction = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint)
+
+        const RAW_RAY_DISTANCE: number[] = Game.instance.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+        
+        // custom shading
+        // render the pixel
+        const COLOR: number[] = PIXEL_COLORS[RAW_RAY_DISTANCE[1]]
+        const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 1) * Game.instance.brightnessMultiplier
+
+        Utilities.drawPixel(x, y, `rgb(
+          ${Math.floor(COLOR[0] * brightness)},
+          ${Math.floor(COLOR[1] * brightness)},
+          ${Math.floor(COLOR[2] * brightness)}
+          )`)
+      }
+    }
+    
+    const TIME_TWO: number = performance.now()
+    const TIME_DIFF: number = TIME_TWO - TIME;
+    Canvas.instance.context.font = "24px Arial"
+    Canvas.instance.context.fillStyle = "white"
+    Canvas.instance.context.fillText(`MAX FPS: ${Math.round(1000 / TIME_DIFF)}`, 50, 50)
+      
   }
 }
 
@@ -263,5 +338,8 @@ export {
   UpdatePlayerPositionToFirebaseCommand,
   ClearAllPlayersFromDatabaseCommand, 
   RemoveClientPlayerFromDatabaseCommand, 
-  TogglePauseCommand
+  TogglePauseCommand, 
+  LockPointerCommand, 
+  ExitGameCommand, 
+  RenderViewForPlayerCommand
 }

@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, RemoveClientPlayerFromDatabaseCommand, StartGameCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -28,24 +28,29 @@ class Game {
   readonly gravitationalAccelerationConstant: number = 1
   readonly terminalVelocity: number = 12
   readonly maxRenderDistance: number = 8 * GameMap.tileSize;
-  readonly pauseMenuBrightnessMultiplier: number = 0.2
-  readonly defaultBrightnessMultiplier: number = 0.7;
+  readonly pauseMenuBrightnessMultiplier: number = 0.1
+  readonly defaultBrightnessMultiplier: number = 0.9;
   public brightnessMultiplier: number = this.defaultBrightnessMultiplier;
 
   public isPaused: boolean = true;
   
-  private mainMenu: CompositeMenu = new CompositeMenu("JamesCraft")
+  private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft")
   private pauseMenu: CompositeMenu = new CompositeMenu("Game Paused")
+
+  public get mainMenu(): CompositeMenu {
+    return this._mainMenu
+  }
 
   public otherPlayers = {}
 
   private constructor() {
     this.composeMainMenu()
+    this.composePauseMenu()
 
     window.addEventListener("beforeunload", function (e) {
       Game.instance.endGame()
       new RemoveClientPlayerFromDatabaseCommand().execute()
-      });
+    });
   }
 
   public start() {
@@ -72,6 +77,9 @@ class Game {
       this.updateFromDatabase()
       this.player.updatePosition()
       this.renderForPlayer()
+      if (this.isPaused) {
+        new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute()
+      }
     }, this.timeInterval);
   }
 
@@ -82,20 +90,34 @@ class Game {
       "start game"
     )
     START_BUTTON.addCommand(new StartGameCommand())
-    this.mainMenu.addMenuButton(START_BUTTON)
+    this._mainMenu.addMenuButton(START_BUTTON)
   }
 
 
   public composePauseMenu(): void {
     const RESUME_BUTTON: MenuButton = new MenuButton(
       Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
-      Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2,
-      "RESUME_GAME"
+      Canvas.HEIGHT / 2 - MenuButton.buttonHeight * 2,
+      "Resume Game"
     )
+    RESUME_BUTTON.addCommand(new LockPointerCommand())
+
+    const EXIT_BUTTON: MenuButton = new MenuButton(
+      Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
+      Canvas.HEIGHT / 2 + MenuButton.buttonHeight,
+      "Exit Game"
+    )
+    EXIT_BUTTON.addCommand(new ExitGameCommand())
     this.pauseMenu.addMenuButton(RESUME_BUTTON);
+    this.pauseMenu.addMenuButton(EXIT_BUTTON);
+    this.pauseMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand())
   }
 
   public endGame() {
+    this.isPaused = true
+    this.controller.assignEscKeyPressedCommand(undefined)
+    this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier
+    this.controller.clearInput();
     clearInterval(this.gameLoop)
   }
 
