@@ -12,7 +12,7 @@ class Player {
   // note that x and y are center values
   private _x: number = GameMap.tileSize * 1.5
   private _y: number = GameMap.tileSize * 1.5
-  private _z: number = GameMap.tileSize * 2
+  private _z: number = GameMap.tileSize * 1.9
   private size: number = Player.size
   private _yaw: number = 0;
   private _pitch: number = 0;
@@ -65,6 +65,19 @@ class Player {
     if (this.grounded) {
       this.velocityVector[2] = 12
     }
+  }
+
+
+  public setLocation(location: Position) {
+    this._x = location[0];
+    this._y = location[1];
+    this._z = location[2];
+  }
+
+
+  public setDirection(direction: Direction) {
+    this._pitch = direction[1]
+    this._yaw = direction[0]
   }
 
 

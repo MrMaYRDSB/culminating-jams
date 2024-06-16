@@ -27,6 +27,8 @@ class Game {
     pauseMenuBrightnessMultiplier = 0.1;
     defaultBrightnessMultiplier = 0.9;
     brightnessMultiplier = this.defaultBrightnessMultiplier;
+    spawnLocation = [GameMap.tileSize * 1.5, GameMap.tileSize * 1.5, GameMap.tileSize * 1.9];
+    spawnDirection = [0, 0];
     isPaused = true;
     _mainMenu = new CompositeMenu("JamesCraft");
     pauseMenu = new CompositeMenu("Game Paused");
@@ -55,6 +57,8 @@ class Game {
         }, { onlyOnce: true });
     }
     startGame() {
+        this.player.setLocation(this.spawnLocation);
+        this.player.setDirection(this.spawnDirection);
         this.gameLoop = setInterval(() => {
             this.updateFromDatabase();
             this.player.updatePosition();
@@ -84,6 +88,8 @@ class Game {
         this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier;
         this.controller.clearInput();
         clearInterval(this.gameLoop);
+        new RemoveClientPlayerFromDatabaseCommand().execute();
+        this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     }
     clearScreen() {
         this.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);

@@ -60,7 +60,7 @@ class MenuMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
 class StartGameCommand implements Command {
   public execute(): void {
     Canvas.instance.screen.requestPointerLock();
-    Game.instance.startGame()
+    Game.instance.startGame();
     new SetMainGameControlsCommand().execute()
     Game.instance.controller.assignEscKeyPressedCommand(new MainGameEscapeKeyPressedCommand())
     Game.instance.controller.assignPointerLockChangeCommand(new TogglePauseCommand())

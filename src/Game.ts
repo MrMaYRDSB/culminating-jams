@@ -12,7 +12,7 @@ import {
   //@ts-ignore Import module
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
-import { Vector, VectorMath, Direction } from "./Vector.js";
+import { Vector, VectorMath, Direction, Position } from "./Vector.js";
 
 
 class Game {
@@ -31,6 +31,9 @@ class Game {
   readonly pauseMenuBrightnessMultiplier: number = 0.1
   readonly defaultBrightnessMultiplier: number = 0.9;
   public brightnessMultiplier: number = this.defaultBrightnessMultiplier;
+
+  public spawnLocation: Position = [GameMap.tileSize * 1.5, GameMap.tileSize * 1.5, GameMap.tileSize * 1.9]
+  public spawnDirection: Direction = [0, 0]
 
   public isPaused: boolean = true;
   
@@ -73,6 +76,8 @@ class Game {
   }
 
   public startGame() {
+    this.player.setLocation(this.spawnLocation)
+    this.player.setDirection(this.spawnDirection)
     this.gameLoop = setInterval(() => {
       this.updateFromDatabase()
       this.player.updatePosition()
@@ -118,7 +123,9 @@ class Game {
     this.controller.assignEscKeyPressedCommand(undefined)
     this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier
     this.controller.clearInput();
-    clearInterval(this.gameLoop)
+    clearInterval(this.gameLoop);
+    new RemoveClientPlayerFromDatabaseCommand().execute()
+    this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections()
   }
 
   private clearScreen(): void {

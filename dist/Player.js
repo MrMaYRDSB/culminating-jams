@@ -10,7 +10,7 @@ class Player {
     // note that x and y are center values
     _x = GameMap.tileSize * 1.5;
     _y = GameMap.tileSize * 1.5;
-    _z = GameMap.tileSize * 2;
+    _z = GameMap.tileSize * 1.9;
     size = Player.size;
     _yaw = 0;
     _pitch = 0;
@@ -54,6 +54,15 @@ class Player {
         if (this.grounded) {
             this.velocityVector[2] = 12;
         }
+    }
+    setLocation(location) {
+        this._x = location[0];
+        this._y = location[1];
+        this._z = location[2];
+    }
+    setDirection(direction) {
+        this._pitch = direction[1];
+        this._yaw = direction[0];
     }
     rotateYaw(deg) {
         this._yaw += deg;
