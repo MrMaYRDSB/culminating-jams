@@ -171,7 +171,6 @@ class DisplayMenuAndSetMouseControllerCommand implements Command {
   constructor(private menu: CompositeMenu) { }
 
   public execute(): void {
-    console.log("attempted")
     this.menu.drawMenuAndMenuButtons();
     Game.instance.controller.assignMouseClickCommand(new MenuMouseClickedEventHandlerCommand(this.menu));
     Game.instance.controller.assignMouseMoveCommand(undefined)
@@ -373,6 +372,19 @@ class RemoveClientPlayerFromDatabaseCommand implements Command {
 }
 
 
+class RemoveAllBulletsBySelfFromDatabaseCommand implements Command {
+  public execute(): void {
+    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
+    for (let i = 0; i < BULLETS.length; i++) {
+      if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
+        delete Game.instance.allBullets[BULLETS[i].id];
+        console.log("deleted at the end")
+      }
+    }
+    set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets)
+  }
+}
+
 export {
   Command,
   HandleMouseClickCommand,
@@ -392,5 +404,6 @@ export {
   RemoveBulletFromFirebaseByIDCommand, 
   UpdateBulletPositionToFirebaseCommand, 
   ExitGameThenDisplayMenuCommand, 
-  UnlockPointerCommand
+  UnlockPointerCommand,
+  RemoveAllBulletsBySelfFromDatabaseCommand
 }

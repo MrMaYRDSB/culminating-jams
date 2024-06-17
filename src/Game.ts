@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -100,6 +100,7 @@ class Game {
       { onlyOnce: true }
     )
   }
+
 
 
   public updateOwnBulletsAndUpdateToFirebase(): void {
@@ -210,6 +211,7 @@ class Game {
     this.controller.clearInput();
     clearInterval(this.gameLoop);
     new RemoveClientPlayerFromDatabaseCommand().execute()
+    new RemoveAllBulletsBySelfFromDatabaseCommand().execute()
     this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections()
   }
 
