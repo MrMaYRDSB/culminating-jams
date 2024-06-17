@@ -103,7 +103,7 @@ class Game {
             this.renderForPlayer();
             this.renderPlayerUI();
             if (this.player.health <= 0) {
-                new ExitGameThenDisplayMenuCommand(this.gameOverMenu);
+                new ExitGameThenDisplayMenuCommand(this.gameOverMenu).execute();
             }
             if (this.isPaused) {
                 new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute();
