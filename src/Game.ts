@@ -121,6 +121,9 @@ class Game {
         this.bulletsToRemove.splice(i, 1)
       }
     }
+
+    // delete ghost bullets (that do not exist in db)
+    
   }
 
 
