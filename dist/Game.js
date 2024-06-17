@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -34,6 +34,7 @@ class Game {
     isPaused = true;
     _mainMenu = new CompositeMenu("JamesCraft But With Guns");
     pauseMenu = new CompositeMenu("Game Paused");
+    _gameOverMenu = new CompositeMenu("Game Over");
     bulletsBySelf = [];
     bulletsToRemove = [];
     otherPlayers = {};
@@ -42,9 +43,13 @@ class Game {
     get mainMenu() {
         return this._mainMenu;
     }
+    get gameOverMenu() {
+        return this._gameOverMenu;
+    }
     constructor() {
         this.composeMainMenu();
         this.composePauseMenu();
+        this.composeGameOverMenu();
         window.addEventListener("beforeunload", function (e) {
             Game.instance.endGame();
             new RemoveClientPlayerFromDatabaseCommand().execute();
@@ -92,11 +97,14 @@ class Game {
         this.gameLoop = setInterval(() => {
             const TIME = performance.now();
             this.updateFromDatabase();
-            this.player.updatePosition();
+            this.player.update();
             this.updateOwnBulletsAndUpdateToFirebase();
             this.checkPlayerCollisionWithBullets();
             this.renderForPlayer();
             this.renderPlayerUI();
+            if (this.player.health <= 0) {
+                new ExitGameThenDisplayMenuCommand(this.gameOverMenu);
+            }
             if (this.isPaused) {
                 new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute();
             }
@@ -115,10 +123,16 @@ class Game {
         const RESUME_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight * 2, "Resume Game");
         RESUME_BUTTON.addCommand(new LockPointerCommand());
         const EXIT_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 + MenuButton.buttonHeight, "Exit Game");
-        EXIT_BUTTON.addCommand(new ExitGameCommand());
+        EXIT_BUTTON.addCommand(new ExitGameThenDisplayMenuCommand(this.mainMenu));
         this.pauseMenu.addMenuButton(RESUME_BUTTON);
         this.pauseMenu.addMenuButton(EXIT_BUTTON);
         this.pauseMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand());
+    }
+    composeGameOverMenu() {
+        const MENU_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2, "Return To Menu");
+        MENU_BUTTON.addCommand(new DisplayMenuAndSetMouseControllerCommand(this.mainMenu));
+        this.gameOverMenu.addMenuButton(MENU_BUTTON);
+        this.gameOverMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand());
     }
     endGame() {
         this.isPaused = true;
@@ -136,7 +150,6 @@ class Game {
             const bmax = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
             if (VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
                 bullet.sourcePlayerID !== this.player.id) {
-                new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute();
                 this.player.takeDamage(1);
             }
         }

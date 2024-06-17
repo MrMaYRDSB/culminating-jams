@@ -74,7 +74,18 @@ class ExitGameCommand implements Command {
   public execute(): void {
     Game.instance.endGame()
     new UnsetMainGameControlsCommand().execute();
-    new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute()
+  }
+}
+
+
+class ExitGameThenDisplayMenuCommand extends ExitGameCommand implements Command {
+  constructor(protected menu: CompositeMenu) {
+    super()
+  }
+
+  public execute(): void {
+    super.execute()
+    new DisplayMenuAndSetMouseControllerCommand(this.menu).execute()
   }
 }
 
@@ -83,8 +94,11 @@ class ShootBulletCommand implements Command {
   constructor(protected player: Player) { }
 
   public execute(): void {
-    const NEW_BULLET: Bullet = new Bullet(this.player)
-    Game.instance.bulletsBySelf.push(NEW_BULLET)
+    if (this.player.canShoot) {
+      const NEW_BULLET: Bullet = new Bullet(this.player)
+      Game.instance.bulletsBySelf.push(NEW_BULLET)
+      this.player.resetShootingCooldown()
+    }
   }
 }
 
@@ -375,5 +389,6 @@ export {
   ExitGameCommand, 
   RenderViewForPlayerCommand, 
   RemoveBulletFromFirebaseByIDCommand, 
-  UpdateBulletPositionToFirebaseCommand
+  UpdateBulletPositionToFirebaseCommand, 
+  ExitGameThenDisplayMenuCommand
 }

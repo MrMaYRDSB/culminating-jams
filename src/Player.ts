@@ -31,6 +31,9 @@ class Player {
 
   private grounded: boolean = false;
 
+  private shootingCooldown: number = 500;
+  private currentShootingCooldown: number = 0
+
   private maxPitch: number = Math.PI / 2
 
   private velocityVector: Vector = [0, 0, 0]
@@ -99,6 +102,15 @@ class Player {
     this._x = location[0];
     this._y = location[1];
     this._z = location[2];
+  }
+
+  public get canShoot(): boolean {
+    return this.currentShootingCooldown === 0;
+  }
+
+
+  public resetShootingCooldown(): void {
+    this.currentShootingCooldown = this.shootingCooldown
   }
 
 
@@ -237,7 +249,8 @@ class Player {
     }
   }
 
-  public updatePosition(): void {
+  public update(): void {
+    this.currentShootingCooldown = Math.max(this.currentShootingCooldown - 1000 / Game.instance.FPS, 0)
     this._directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch])
     this.modifyVelocityVectorBasedOnIntendedVector()
     this.moveX()

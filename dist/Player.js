@@ -24,6 +24,8 @@ class Player {
     _health = this.maxHealth;
     id = nanoid(20);
     grounded = false;
+    shootingCooldown = 500;
+    currentShootingCooldown = 0;
     maxPitch = Math.PI / 2;
     velocityVector = [0, 0, 0];
     _directionVector = [1, 0, 0];
@@ -82,6 +84,12 @@ class Player {
         this._x = location[0];
         this._y = location[1];
         this._z = location[2];
+    }
+    get canShoot() {
+        return this.currentShootingCooldown === 0;
+    }
+    resetShootingCooldown() {
+        this.currentShootingCooldown = this.shootingCooldown;
     }
     setDirection(direction) {
         this._pitch = direction[1];
@@ -196,7 +204,8 @@ class Player {
             this.grounded = false;
         }
     }
-    updatePosition() {
+    update() {
+        this.currentShootingCooldown = Math.max(this.currentShootingCooldown - 1000 / Game.instance.FPS, 0);
         this._directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);
         this.modifyVelocityVectorBasedOnIntendedVector();
         this.moveX();

@@ -53,7 +53,17 @@ class ExitGameCommand {
     execute() {
         Game.instance.endGame();
         new UnsetMainGameControlsCommand().execute();
-        new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute();
+    }
+}
+class ExitGameThenDisplayMenuCommand extends ExitGameCommand {
+    menu;
+    constructor(menu) {
+        super();
+        this.menu = menu;
+    }
+    execute() {
+        super.execute();
+        new DisplayMenuAndSetMouseControllerCommand(this.menu).execute();
     }
 }
 class ShootBulletCommand {
@@ -62,8 +72,11 @@ class ShootBulletCommand {
         this.player = player;
     }
     execute() {
-        const NEW_BULLET = new Bullet(this.player);
-        Game.instance.bulletsBySelf.push(NEW_BULLET);
+        if (this.player.canShoot) {
+            const NEW_BULLET = new Bullet(this.player);
+            Game.instance.bulletsBySelf.push(NEW_BULLET);
+            this.player.resetShootingCooldown();
+        }
     }
 }
 class RenderViewForPlayerCommand {
@@ -271,5 +284,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand };
 //# sourceMappingURL=Command.js.map
