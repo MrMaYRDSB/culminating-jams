@@ -6,7 +6,7 @@ import { Game } from "./Game.js";
 import { GameMap } from "./Map.js";
 
 class Bullet {
-  public static size: number = 20;
+  public static size: number = 10;
   public static color: number = 0
   protected speed: number = 20;
   private velocityVector: Vector;
