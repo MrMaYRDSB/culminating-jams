@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -11,6 +11,8 @@ import { ref, onValue,
  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
 import { VectorMath } from "./Vector.js";
+import { Bullet } from "./Bullet.js";
+import { Rectangle } from "./Shapes.js";
 class Game {
     static _instance;
     player = new Player();
@@ -20,7 +22,7 @@ class Game {
     gameLoop = undefined;
     FPS = 30;
     timeInterval = 1000 / this.FPS;
-    resolution = 20;
+    resolution = 15;
     gravitationalAccelerationConstant = 1;
     terminalVelocity = 12;
     maxRenderDistance = 8 * GameMap.tileSize;
@@ -30,12 +32,13 @@ class Game {
     spawnLocation = [GameMap.tileSize * 1.5, GameMap.tileSize * 1.5, GameMap.tileSize * 1.9];
     spawnDirection = [0, 0];
     isPaused = true;
-    _mainMenu = new CompositeMenu("JamesCraft");
+    _mainMenu = new CompositeMenu("JamesCraft But With Guns");
     pauseMenu = new CompositeMenu("Game Paused");
     bulletsBySelf = [];
     bulletsToRemove = [];
     otherPlayers = {};
     allBullets = {};
+    healthBar = new Rectangle(Canvas.WIDTH / 2 - 300, Canvas.HEIGHT - 80, "Black", 600, 60);
     get mainMenu() {
         return this._mainMenu;
     }
@@ -76,7 +79,7 @@ class Game {
             for (let i = 0; i < this.bulletsToRemove.length; i++) {
                 const B = this.bulletsToRemove[i];
                 if (this.allBullets[B.id]) {
-                    new RemoveBulletFromFirebaseCommand(this.bulletsToRemove[i]).execute();
+                    new RemoveBulletFromFirebaseByIDCommand(B.id).execute();
                     this.bulletsToRemove.splice(i, 1);
                 }
             }
@@ -90,6 +93,7 @@ class Game {
             this.updateFromDatabase();
             this.player.updatePosition();
             this.updateOwnBulletsAndUpdateToFirebase();
+            this.checkPlayerCollisionWithBullets();
             this.renderForPlayer();
             this.renderPlayerUI();
             if (this.isPaused) {
@@ -124,6 +128,18 @@ class Game {
         new RemoveClientPlayerFromDatabaseCommand().execute();
         this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     }
+    checkPlayerCollisionWithBullets() {
+        const BULLET_POSITIONS = Object.values(Game.instance.allBullets);
+        for (let bullet of BULLET_POSITIONS) {
+            const bmin = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
+            const bmax = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
+            if (VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
+                bullet.sourcePlayerID !== this.player.id) {
+                new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute();
+                this.player.takeDamage(1);
+            }
+        }
+    }
     clearScreen() {
         this.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
     }
@@ -135,6 +151,9 @@ class Game {
         Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "white");
         Utilities.drawLine(Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 + 10, "white");
         Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 10, "white");
+        this.healthBar.draw();
+        Canvas.instance.context.fillStyle = "red";
+        Canvas.instance.context.fillRect((Canvas.WIDTH / 2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40);
     }
     renderForPlayer() {
         this.clearScreen();

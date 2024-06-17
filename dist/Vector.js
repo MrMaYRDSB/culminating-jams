@@ -120,6 +120,18 @@ class VectorMath {
             return intersectionsResults;
         }
     }
+    static rectanglesCollide(rect1Min, rect1Max, rect2Min, rect2max) {
+        if (rect1Max[0] <= rect2Min[0] || rect2max[0] <= rect1Min[0]) {
+            return false;
+        }
+        if (rect1Max[1] <= rect2Min[1] || rect2max[1] <= rect1Min[1]) {
+            return false;
+        }
+        if (rect1Max[2] <= rect2Min[2] || rect2max[2] <= rect1Min[2]) {
+            return false;
+        }
+        return true;
+    }
 }
 export { VectorMath };
 //# sourceMappingURL=Vector.js.map

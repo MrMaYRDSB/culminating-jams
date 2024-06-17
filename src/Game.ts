@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -14,6 +14,7 @@ import {
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Vector, VectorMath, Direction, Position } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
+import { Rectangle } from "./Shapes.js";
 
 class Game {
   private static _instance: Game | undefined;
@@ -24,7 +25,7 @@ class Game {
   private gameLoop: any = undefined;
   readonly FPS: number = 30;
   private timeInterval: number = 1000/this.FPS
-  readonly resolution: number = 20;
+  readonly resolution: number = 15;
   readonly gravitationalAccelerationConstant: number = 1
   readonly terminalVelocity: number = 12
   readonly maxRenderDistance: number = 8 * GameMap.tileSize;
@@ -37,7 +38,7 @@ class Game {
 
   public isPaused: boolean = true;
   
-  private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft")
+  private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft But With Guns")
   private pauseMenu: CompositeMenu = new CompositeMenu("Game Paused")
 
   public bulletsBySelf: Bullet[] = [];
@@ -45,6 +46,10 @@ class Game {
 
   public otherPlayers = {}
   public allBullets = {}
+
+
+  public healthBar: Rectangle = new Rectangle(Canvas.WIDTH/2 - 300, Canvas.HEIGHT-80, "Black", 600, 60)
+
 
   public get mainMenu(): CompositeMenu {
     return this._mainMenu
@@ -105,7 +110,7 @@ class Game {
       for (let i = 0; i < this.bulletsToRemove.length; i++) {
         const B: Bullet = this.bulletsToRemove[i]
         if (this.allBullets[B.id]) {
-          new RemoveBulletFromFirebaseCommand(this.bulletsToRemove[i]).execute()
+          new RemoveBulletFromFirebaseByIDCommand(B.id).execute()
           this.bulletsToRemove.splice(i, 1)
         }
       }
@@ -122,8 +127,9 @@ class Game {
       this.updateFromDatabase()
       this.player.updatePosition()
       this.updateOwnBulletsAndUpdateToFirebase()
-      this.renderForPlayer()
 
+      this.checkPlayerCollisionWithBullets()
+      this.renderForPlayer()
       this.renderPlayerUI()
 
       if (this.isPaused) {
@@ -181,6 +187,23 @@ class Game {
     this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections()
   }
 
+
+  private checkPlayerCollisionWithBullets(): void {
+    const BULLET_POSITIONS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
+    for (let bullet of BULLET_POSITIONS) {
+      const bmin: Position = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
+      const bmax: Position = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
+
+      if (
+        VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
+        bullet.sourcePlayerID !== this.player.id
+      ) {
+        new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute()
+        this.player.takeDamage(1)
+      }
+    }
+  }
+
   private clearScreen(): void {
     this.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
   }
@@ -194,7 +217,13 @@ class Game {
 
     Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "white");
     Utilities.drawLine(Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2+10, "white");
-    Utilities.drawLine(Canvas.WIDTH / 2 -1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2-1, Canvas.HEIGHT / 2+10, "white");
+    Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 10, "white");
+    
+    this.healthBar.draw()
+    Canvas.instance.context.fillStyle = "red"
+    Canvas.instance.context.fillRect(
+      (Canvas.WIDTH/2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40
+    )
   }
 
   private renderForPlayer() {

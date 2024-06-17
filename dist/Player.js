@@ -20,6 +20,8 @@ class Player {
     colorCode = Utilities.randInt(0, PIXEL_COLORS.length);
     acceleration = 2;
     maxMovingSpeed = 8;
+    maxHealth = 10;
+    _health = this.maxHealth;
     id = nanoid(20);
     grounded = false;
     maxPitch = Math.PI / 2;
@@ -54,6 +56,19 @@ class Player {
     }
     get directionVector() {
         return this._directionVector;
+    }
+    get health() {
+        return this._health;
+    }
+    get charMin() {
+        return [this._x - this.size / 2, this._y - this.size / 2, this._z - this.size];
+    }
+    get charMax() {
+        return [this._x + this.size / 2, this._y + this.size / 2, this._z];
+    }
+    takeDamage(dmg) {
+        this._health -= dmg;
+        this._health = Math.max(this._health, 0);
     }
     jump() {
         if (this.grounded) {

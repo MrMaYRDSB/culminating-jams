@@ -208,16 +208,16 @@ class UpdateBulletPositionToFirebaseCommand {
         });
     }
 }
-class RemoveBulletFromFirebaseCommand {
-    bullet;
-    constructor(bullet) {
-        this.bullet = bullet;
+class RemoveBulletFromFirebaseByIDCommand {
+    bulletid;
+    constructor(bulletid) {
+        this.bulletid = bulletid;
     }
     execute() {
         const BULLETS = Object.values(Game.instance.allBullets);
         for (let i = 0; i < BULLETS.length; i++) {
-            if (BULLETS[i].id === this.bullet.id) {
-                delete Game.instance.allBullets[this.bullet.id];
+            if (BULLETS[i].id === this.bulletid) {
+                delete Game.instance.allBullets[this.bulletid];
                 set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
                 return;
             }
@@ -271,5 +271,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseCommand, UpdateBulletPositionToFirebaseCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand };
 //# sourceMappingURL=Command.js.map

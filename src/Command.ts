@@ -280,15 +280,15 @@ class UpdateBulletPositionToFirebaseCommand implements Command {
 }
 
 
-class RemoveBulletFromFirebaseCommand implements Command {
-  constructor(protected bullet: Bullet) {
+class RemoveBulletFromFirebaseByIDCommand implements Command {
+  constructor(protected bulletid: string) {
 
   }
   public execute(): void {
     const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
     for (let i = 0; i < BULLETS.length; i++) {
-      if (BULLETS[i].id === this.bullet.id) {
-        delete Game.instance.allBullets[this.bullet.id];
+      if (BULLETS[i].id === this.bulletid) {
+        delete Game.instance.allBullets[this.bulletid];
         set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets)
         return
       }
@@ -374,6 +374,6 @@ export {
   LockPointerCommand, 
   ExitGameCommand, 
   RenderViewForPlayerCommand, 
-  RemoveBulletFromFirebaseCommand, 
+  RemoveBulletFromFirebaseByIDCommand, 
   UpdateBulletPositionToFirebaseCommand
 }

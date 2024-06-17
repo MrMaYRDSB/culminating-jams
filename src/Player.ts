@@ -6,6 +6,7 @@ import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nano
 import { Utilities } from "./Utilities.js";
 import { VectorMath, Vector, Position, Direction } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
+import { maxHeaderSize } from "http";
 
 class Player {
 
@@ -22,6 +23,8 @@ class Player {
   public colorCode: number = Utilities.randInt(0, PIXEL_COLORS.length)
   readonly acceleration: number = 2
   readonly maxMovingSpeed: number = 8
+  readonly maxHealth: number = 10;
+  private _health: number = this.maxHealth
 
   readonly id: string = nanoid(20);
 
@@ -63,6 +66,22 @@ class Player {
   }
   public get directionVector(): Vector {
     return this._directionVector
+  }
+  public get health(): number {
+    return this._health
+  }
+
+  public get charMin(): Position {
+    return [this._x - this.size/2, this._y - this.size/2, this._z - this.size]
+  }
+
+  public get charMax(): Position {
+    return [this._x + this.size/2, this._y + this.size/2, this._z]
+  }
+
+  public takeDamage(dmg: number) {
+    this._health -= dmg;
+    this._health = Math.max(this._health, 0)
   }
 
   public jump(): void {
