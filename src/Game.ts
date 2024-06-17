@@ -113,13 +113,12 @@ class Game {
         this.bulletsBySelf.splice(i, 1);
         this.bulletsToRemove.push(bullet)
       }
-
-      for (let i = 0; i < this.bulletsToRemove.length; i++) {
-        const B: Bullet = this.bulletsToRemove[i]
-        if (this.allBullets[B.id]) {
-          new RemoveBulletFromFirebaseByIDCommand(B.id).execute()
-          this.bulletsToRemove.splice(i, 1)
-        }
+    }
+    for (let i = 0; i < this.bulletsToRemove.length; i++) {
+      const B: Bullet = this.bulletsToRemove[i]
+      if (this.allBullets[B.id]) {
+        new RemoveBulletFromFirebaseByIDCommand(B.id).execute()
+        this.bulletsToRemove.splice(i, 1)
       }
     }
   }
