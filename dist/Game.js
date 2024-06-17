@@ -105,6 +105,7 @@ class Game {
         this.player.setLocation(this.spawnLocation);
         this.player.setDirection(this.spawnDirection);
         this.player.resetHealth();
+        this.player.laser.isOn = false;
         this.controller.assignPointerLockChangeCommand(new TogglePauseCommand());
         this.gameLoop = setInterval(() => {
             const TIME = performance.now();
@@ -154,6 +155,7 @@ class Game {
         this.isPaused = true;
         this.controller.assignEscKeyPressedCommand(undefined);
         this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier;
+        this.player.laser.isOn = false;
         this.controller.clearInput();
         clearInterval(this.gameLoop);
         new RemoveClientPlayerFromDatabaseCommand().execute();
@@ -176,13 +178,15 @@ class Game {
     checkPlayerCollisionWithLasers() {
         const LASERS = Object.values(this.otherLasers);
         for (let laser of LASERS) {
-            const RESULTS = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax);
-            if (RESULTS !== null) {
-                for (let point of RESULTS) {
-                    if (VectorMath.isSameDirection(laser.direction, VectorMath.drawVectorFromP1toP2(laser.position, point))) {
-                        // player is hit
-                        this.player.takeDamage(0.1);
-                        break;
+            if (laser.isOn) {
+                const RESULTS = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax);
+                if (RESULTS !== null) {
+                    for (let point of RESULTS) {
+                        if (VectorMath.isSameDirection(laser.direction, VectorMath.drawVectorFromP1toP2(laser.position, point))) {
+                            // player is hit
+                            this.player.takeDamage(0.1);
+                            break;
+                        }
                     }
                 }
             }

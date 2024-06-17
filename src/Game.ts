@@ -150,6 +150,7 @@ class Game {
     this.player.setLocation(this.spawnLocation)
     this.player.setDirection(this.spawnDirection)
     this.player.resetHealth()
+    this.player.laser.isOn = false
     this.controller.assignPointerLockChangeCommand(new TogglePauseCommand())
 
     this.gameLoop = setInterval(() => {
@@ -230,6 +231,7 @@ class Game {
     this.isPaused = true
     this.controller.assignEscKeyPressedCommand(undefined)
     this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier
+    this.player.laser.isOn = false;
     this.controller.clearInput();
     clearInterval(this.gameLoop);
     new RemoveClientPlayerFromDatabaseCommand().execute()
@@ -260,16 +262,17 @@ class Game {
     const LASERS: {position: Position, direction: Vector, isOn: boolean, id: string, sourcePlayerID: string}[] = Object.values(this.otherLasers)
     
     for (let laser of LASERS) {
-      
-      const RESULTS: Position[] = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax)
-      if (RESULTS !== null) {
-        for (let point of RESULTS) {
-          if (VectorMath.isSameDirection(laser.direction,
-            VectorMath.drawVectorFromP1toP2(laser.position, point))
-          ) {
-            // player is hit
-            this.player.takeDamage(0.1)
-            break
+      if (laser.isOn) {
+        const RESULTS: Position[] = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax)
+        if (RESULTS !== null) {
+          for (let point of RESULTS) {
+            if (VectorMath.isSameDirection(laser.direction,
+              VectorMath.drawVectorFromP1toP2(laser.position, point))
+            ) {
+              // player is hit
+              this.player.takeDamage(0.1)
+              break
+            }
           }
         }
       }

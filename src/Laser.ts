@@ -17,6 +17,9 @@ class Laser {
   public get isOn(): boolean {
     return this._isOn
   }
+  public set isOn(n: boolean) {
+    this._isOn = n;
+  }
   public get sourcePlayerID(): string {
     return this._sourcePlayerID;
   }

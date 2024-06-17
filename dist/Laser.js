@@ -13,6 +13,9 @@ class Laser {
     get isOn() {
         return this._isOn;
     }
+    set isOn(n) {
+        this._isOn = n;
+    }
     get sourcePlayerID() {
         return this._sourcePlayerID;
     }
