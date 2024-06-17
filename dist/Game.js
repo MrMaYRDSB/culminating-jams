@@ -32,7 +32,7 @@ class Game {
     spawnLocation = [GameMap.tileSize * 1.5, GameMap.tileSize * 1.5, GameMap.tileSize * 1.9];
     spawnDirection = [0, 0];
     isPaused = true;
-    _mainMenu = new CompositeMenu("JamesCraft But With Guns");
+    _mainMenu = new CompositeMenu("JamesCraft Shooter");
     pauseMenu = new CompositeMenu("Game Paused");
     _gameOverMenu = new CompositeMenu("Game Over");
     bulletsBySelf = [];

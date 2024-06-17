@@ -38,7 +38,7 @@ class Game {
 
   public isPaused: boolean = true;
   
-  private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft But With Guns")
+  private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft Shooter")
   private pauseMenu: CompositeMenu = new CompositeMenu("Game Paused")
   private _gameOverMenu: CompositeMenu = new CompositeMenu("Game Over")
 
