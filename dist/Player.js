@@ -70,6 +70,9 @@ class Player {
         this._health -= dmg;
         this._health = Math.max(this._health, 0);
     }
+    resetHealth() {
+        this._health = this.maxHealth;
+    }
     jump() {
         if (this.grounded) {
             this.velocityVector[2] = 12;

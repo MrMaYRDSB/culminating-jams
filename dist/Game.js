@@ -88,6 +88,7 @@ class Game {
     startGame() {
         this.player.setLocation(this.spawnLocation);
         this.player.setDirection(this.spawnDirection);
+        this.player.resetHealth();
         this.gameLoop = setInterval(() => {
             const TIME = performance.now();
             this.updateFromDatabase();

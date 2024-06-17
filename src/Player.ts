@@ -84,6 +84,10 @@ class Player {
     this._health = Math.max(this._health, 0)
   }
 
+  public resetHealth(): void {
+    this._health = this.maxHealth
+  }
+
   public jump(): void {
     if (this.grounded) {
       this.velocityVector[2] = 12
