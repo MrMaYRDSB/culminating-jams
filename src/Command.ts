@@ -4,9 +4,11 @@ import { Player } from "./Player.js";
 import {
   update,
   ref,
-  set
+  set, 
+  onValue, 
   //@ts-ignore Import module
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Canvas } from "./Canvas.js";
 import { VectorMath, Vector, Position, Direction } from "./Vector.js";
@@ -96,6 +98,7 @@ class ShootBulletCommand implements Command {
   public execute(): void {
     if (this.player.canShoot) {
       const NEW_BULLET: Bullet = new Bullet(this.player)
+      new UploadBulletToFirebaseCommand(NEW_BULLET).execute()
       Game.instance.bulletsBySelf.push(NEW_BULLET)
       this.player.resetShootingCooldown()
     }
@@ -276,9 +279,8 @@ class UpdatePlayerPositionToFirebaseCommand implements Command {
 
 
 class UpdateBulletPositionToFirebaseCommand implements Command {
-  constructor(protected bullet: Bullet) {
-    
-  }
+  constructor(protected bullet: Bullet) { }
+
   public execute(): void {
     update(
       ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`),
@@ -299,7 +301,8 @@ class RemoveBulletFromFirebaseByIDCommand implements Command {
 
   }
   public execute(): void {
-    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
+    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[]
+      = Object.values(Game.instance.allBullets)
     for (let i = 0; i < BULLETS.length; i++) {
       if (BULLETS[i].id === this.bulletid) {
         delete Game.instance.allBullets[this.bulletid];
@@ -361,6 +364,24 @@ class UnsetMainGameControlsCommand implements Command {
 class ClearAllPlayersFromDatabaseCommand implements Command {
   public execute(): void {
     set(ref(FirebaseClient.instance.db, `/players`), {})
+  }
+}
+
+
+class UploadBulletToFirebaseCommand implements Command {
+  constructor(protected bullet: Bullet) { }
+
+  public execute(): void {
+    update(
+      ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`),
+      {
+        x: this.bullet.x, 
+        y: this.bullet.y,
+        z: this.bullet.z,
+        id: this.bullet.id,
+        sourcePlayerID: this.bullet.sourcePlayerID
+      }
+    )
   }
 }
 

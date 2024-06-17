@@ -156,6 +156,7 @@ class Game {
             if (VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
                 bullet.sourcePlayerID !== this.player.id) {
                 this.player.takeDamage(1);
+                new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute();
             }
         }
     }

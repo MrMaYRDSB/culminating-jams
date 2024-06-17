@@ -97,7 +97,7 @@ class Game {
           this.allBullets = snapshot.val()
         }
       },
-      { onlyOnce: true }
+      { onlyOnce: true}
     )
   }
 
@@ -122,6 +122,9 @@ class Game {
       }
     }
   }
+
+
+  
 
 
   public startGame() {
@@ -226,6 +229,7 @@ class Game {
         bullet.sourcePlayerID !== this.player.id
       ) {
         this.player.takeDamage(1)
+        new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute()
       }
     }
   }
