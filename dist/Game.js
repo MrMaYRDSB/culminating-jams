@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -94,6 +94,7 @@ class Game {
         this.player.setLocation(this.spawnLocation);
         this.player.setDirection(this.spawnDirection);
         this.player.resetHealth();
+        this.controller.assignPointerLockChangeCommand(new TogglePauseCommand());
         this.gameLoop = setInterval(() => {
             const TIME = performance.now();
             this.updateFromDatabase();
@@ -103,7 +104,10 @@ class Game {
             this.renderForPlayer();
             this.renderPlayerUI();
             if (this.player.health <= 0) {
+                this.controller.assignPointerLockChangeCommand(undefined);
+                new UnlockPointerCommand().execute();
                 new ExitGameThenDisplayMenuCommand(this.gameOverMenu).execute();
+                return;
             }
             if (this.isPaused) {
                 new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute();

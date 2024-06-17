@@ -125,6 +125,7 @@ class DisplayMenuAndSetMouseControllerCommand {
         this.menu = menu;
     }
     execute() {
+        console.log("attempted");
         this.menu.drawMenuAndMenuButtons();
         Game.instance.controller.assignMouseClickCommand(new MenuMouseClickedEventHandlerCommand(this.menu));
         Game.instance.controller.assignMouseMoveCommand(undefined);
@@ -284,5 +285,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand };
 //# sourceMappingURL=Command.js.map

@@ -171,6 +171,7 @@ class DisplayMenuAndSetMouseControllerCommand implements Command {
   constructor(private menu: CompositeMenu) { }
 
   public execute(): void {
+    console.log("attempted")
     this.menu.drawMenuAndMenuButtons();
     Game.instance.controller.assignMouseClickCommand(new MenuMouseClickedEventHandlerCommand(this.menu));
     Game.instance.controller.assignMouseMoveCommand(undefined)
@@ -390,5 +391,6 @@ export {
   RenderViewForPlayerCommand, 
   RemoveBulletFromFirebaseByIDCommand, 
   UpdateBulletPositionToFirebaseCommand, 
-  ExitGameThenDisplayMenuCommand
+  ExitGameThenDisplayMenuCommand, 
+  UnlockPointerCommand
 }

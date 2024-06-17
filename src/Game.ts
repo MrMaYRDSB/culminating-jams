@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -128,6 +128,7 @@ class Game {
     this.player.setLocation(this.spawnLocation)
     this.player.setDirection(this.spawnDirection)
     this.player.resetHealth()
+    this.controller.assignPointerLockChangeCommand(new TogglePauseCommand())
 
     this.gameLoop = setInterval(() => {
       const TIME: number = performance.now()
@@ -139,7 +140,10 @@ class Game {
       this.renderPlayerUI()
 
       if (this.player.health <= 0) {
+        this.controller.assignPointerLockChangeCommand(undefined)
+        new UnlockPointerCommand().execute()
         new ExitGameThenDisplayMenuCommand(this.gameOverMenu).execute()
+        return
       }
 
       if (this.isPaused) {
@@ -193,6 +197,7 @@ class Game {
       Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2,
       "Return To Menu"
     )
+
     MENU_BUTTON.addCommand(new DisplayMenuAndSetMouseControllerCommand(this.mainMenu))
     this.gameOverMenu.addMenuButton(MENU_BUTTON)
     this.gameOverMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand())
