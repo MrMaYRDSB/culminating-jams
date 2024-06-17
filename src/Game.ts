@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameCommand, LockPointerCommand, RemoveBulletFromFirebaseCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Vector, VectorMath, Direction, Position } from "./Vector.js";
-
+import { Bullet } from "./Bullet.js";
 
 class Game {
   private static _instance: Game | undefined;
@@ -24,7 +24,7 @@ class Game {
   private gameLoop: any = undefined;
   readonly FPS: number = 30;
   private timeInterval: number = 1000/this.FPS
-  readonly resolution: number = 12;
+  readonly resolution: number = 20;
   readonly gravitationalAccelerationConstant: number = 1
   readonly terminalVelocity: number = 12
   readonly maxRenderDistance: number = 8 * GameMap.tileSize;
@@ -40,11 +40,16 @@ class Game {
   private _mainMenu: CompositeMenu = new CompositeMenu("JamesCraft")
   private pauseMenu: CompositeMenu = new CompositeMenu("Game Paused")
 
+  public bulletsBySelf: Bullet[] = [];
+  public bulletsToRemove: Bullet[] = [];
+
+  public otherPlayers = {}
+  public allBullets = {}
+
   public get mainMenu(): CompositeMenu {
     return this._mainMenu
   }
 
-  public otherPlayers = {}
 
   private constructor() {
     this.composeMainMenu()
@@ -73,7 +78,40 @@ class Game {
       },
       { onlyOnce: true }
     );
+
+    onValue(
+      ref(FirebaseClient.instance.db, "/bullets"), 
+      (snapshot) => {
+        if (snapshot.val()) {
+          this.allBullets = snapshot.val()
+        }
+      },
+      { onlyOnce: true }
+    )
   }
+
+
+  public updateOwnBulletsAndUpdateToFirebase(): void {
+    for (let i = 0; i < this.bulletsBySelf.length; i++) {
+      const bullet: Bullet = this.bulletsBySelf[i]
+      bullet.updatePosition();
+      new UpdateBulletPositionToFirebaseCommand(bullet).execute()
+
+      if (bullet.collideWithWall()) {
+        this.bulletsBySelf.splice(i, 1);
+        this.bulletsToRemove.push(bullet)
+      }
+
+      for (let i = 0; i < this.bulletsToRemove.length; i++) {
+        const B: Bullet = this.bulletsToRemove[i]
+        if (this.allBullets[B.id]) {
+          new RemoveBulletFromFirebaseCommand(this.bulletsToRemove[i]).execute()
+          this.bulletsToRemove.splice(i, 1)
+        }
+      }
+    }
+  }
+
 
   public startGame() {
     this.player.setLocation(this.spawnLocation)
@@ -83,10 +121,19 @@ class Game {
       const TIME: number = performance.now()
       this.updateFromDatabase()
       this.player.updatePosition()
+      this.updateOwnBulletsAndUpdateToFirebase()
       this.renderForPlayer()
+
+      this.renderPlayerUI()
+
       if (this.isPaused) {
         new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute()
       }
+
+
+
+
+      // displays FPS
       this.context.font = "24px Arial"
       this.context.fillStyle = "white"
       this.context.fillText(`MAX FPS: ${Math.round(1000 / (performance.now()-TIME))}`, 50, 50)
@@ -138,9 +185,19 @@ class Game {
     this.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
   }
 
+  private renderPlayerUI(): void {
 
+    // Draw crosshair
+    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2, "white");
+    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 +1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 +1, "white");
+    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 -1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 -1, "white");
 
-  public renderForPlayer() {
+    Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "white");
+    Utilities.drawLine(Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2+10, "white");
+    Utilities.drawLine(Canvas.WIDTH / 2 -1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2-1, Canvas.HEIGHT / 2+10, "white");
+  }
+
+  private renderForPlayer() {
     this.clearScreen()
 
     const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(this.player.fov / 2)
@@ -235,6 +292,7 @@ class Game {
       }
     }
   }
+
   
   public static get instance(): Game {
     if (Game._instance === undefined) {

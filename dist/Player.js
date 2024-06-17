@@ -5,6 +5,7 @@ import { GameMap, PIXEL_COLORS } from "./Map.js";
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
 import { Utilities } from "./Utilities.js";
 import { VectorMath } from "./Vector.js";
+import { Bullet } from "./Bullet.js";
 class Player {
     static size = 56;
     // note that x and y are center values
@@ -23,6 +24,7 @@ class Player {
     grounded = false;
     maxPitch = Math.PI / 2;
     velocityVector = [0, 0, 0];
+    _directionVector = [1, 0, 0];
     get x() {
         return this._x;
     }
@@ -49,6 +51,9 @@ class Player {
     }
     set pitch(angle) {
         this._pitch = angle;
+    }
+    get directionVector() {
+        return this._directionVector;
     }
     jump() {
         if (this.grounded) {
@@ -174,6 +179,7 @@ class Player {
         }
     }
     updatePosition() {
+        this._directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);
         this.modifyVelocityVectorBasedOnIntendedVector();
         this.moveX();
         this.moveY();
@@ -358,7 +364,31 @@ class Player {
         if (COLLISION_WITH_PLAYER[0] < results[0]) {
             results = COLLISION_WITH_PLAYER;
         }
+        const COLLISION_WITH_BULLET = this.getShortestRayCollisionToBullet(RAY_VELOCITY);
+        if (COLLISION_WITH_BULLET[0] < results[0]) {
+            results = COLLISION_WITH_BULLET;
+        }
         return results;
+    }
+    getShortestRayCollisionToBullet(rayVector) {
+        let shortestDistance = 1000000;
+        const BULLET_POSITIONS = Object.values(Game.instance.allBullets);
+        for (let bullet of BULLET_POSITIONS) {
+            const bulletMin = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
+            const bulletMax = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
+            const INTERSECTIONS = VectorMath.findLineCubeIntersections([this._x, this._y, this._z], rayVector, bulletMin, bulletMax);
+            if (INTERSECTIONS) {
+                for (let point of INTERSECTIONS) {
+                    if (VectorMath.isSameDirection(VectorMath.drawVectorFromP1toP2([this._x, this._y, this._z], point), rayVector)) {
+                        const DISTANCE = VectorMath.getDistance([this._x, this._y, this._z], point);
+                        if (DISTANCE < shortestDistance) {
+                            shortestDistance = DISTANCE;
+                        }
+                    }
+                }
+            }
+        }
+        return [shortestDistance, Bullet.color];
     }
     getShortestRayCollisionToPlayer(rayVector) {
         let shortestDistance = 1000000;

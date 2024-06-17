@@ -13,6 +13,7 @@ import { VectorMath, Vector, Position, Direction } from "./Vector.js";
 import { GameMap } from "./Map.js";
 import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
+import { Bullet } from "./Bullet.js";
 
 interface Command {
   execute(): void;
@@ -36,8 +37,9 @@ abstract class HandleMouseClickCommand implements Command {
 
 
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand{
-  public execute(): void { }
-
+  public execute(): void {
+    new ShootBulletCommand(Game.instance.player).execute()
+  }
 }
 
 
@@ -73,6 +75,16 @@ class ExitGameCommand implements Command {
     Game.instance.endGame()
     new UnsetMainGameControlsCommand().execute();
     new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute()
+  }
+}
+
+
+class ShootBulletCommand implements Command {
+  constructor(protected player: Player) { }
+
+  public execute(): void {
+    const NEW_BULLET: Bullet = new Bullet(this.player)
+    Game.instance.bulletsBySelf.push(NEW_BULLET)
   }
 }
 
@@ -249,12 +261,40 @@ class UpdatePlayerPositionToFirebaseCommand implements Command {
 }
 
 
-class MainGameMouseClickCommand extends HandleMouseClickCommand implements Command {
+class UpdateBulletPositionToFirebaseCommand implements Command {
+  constructor(protected bullet: Bullet) {
+    
+  }
   public execute(): void {
-
+    update(
+      ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`),
+      {
+        x: this.bullet.x, 
+        y: this.bullet.y,
+        z: this.bullet.z,
+        id: this.bullet.id,
+        sourcePlayerID: this.bullet.sourcePlayerID
+      }
+    )
   }
 }
 
+
+class RemoveBulletFromFirebaseCommand implements Command {
+  constructor(protected bullet: Bullet) {
+
+  }
+  public execute(): void {
+    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
+    for (let i = 0; i < BULLETS.length; i++) {
+      if (BULLETS[i].id === this.bullet.id) {
+        delete Game.instance.allBullets[this.bullet.id];
+        set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets)
+        return
+      }
+    }
+  }
+}
 
 class LockPointerCommand implements Command {
   public execute(): void {
@@ -291,7 +331,7 @@ class UnlockPointerCommand implements Command {
 class SetMainGameControlsCommand implements Command {
   public execute(): void {
     Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand())
-    Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand())
+    Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickedEventHandlerCommand())
   }
 }
 
@@ -333,5 +373,7 @@ export {
   TogglePauseCommand, 
   LockPointerCommand, 
   ExitGameCommand, 
-  RenderViewForPlayerCommand
+  RenderViewForPlayerCommand, 
+  RemoveBulletFromFirebaseCommand, 
+  UpdateBulletPositionToFirebaseCommand
 }

@@ -32,38 +32,4 @@ class Rectangle {
 }
 
 
-class RectangularPrism {
-  constructor(
-    protected _x: number, protected _y: number, protected _z: number,
-    protected _xLength: number, protected _yLength: number, protected _height: number
-  ) { }
-
-  public get x(): number {
-    return this._x
-  }
-
-  public get y(): number {
-    return this._y
-  }
-
-  public get z(): number {
-    return this._z
-  }
-
-  public get xLength(): number {
-    return this._xLength
-  }
-
-  public get yLength(): number {
-    return this._yLength
-  }
-
-  public get height(): number {
-    return this._height
-  }
-
-
-}
-
-
-export {Rectangle, RectangularPrism}
+export {Rectangle}

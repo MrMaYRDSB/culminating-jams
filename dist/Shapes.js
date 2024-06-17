@@ -29,39 +29,5 @@ class Rectangle {
         Canvas.instance.context.fillRect(this.x, this.y, this.width, this.height);
     }
 }
-class RectangularPrism {
-    _x;
-    _y;
-    _z;
-    _xLength;
-    _yLength;
-    _height;
-    constructor(_x, _y, _z, _xLength, _yLength, _height) {
-        this._x = _x;
-        this._y = _y;
-        this._z = _z;
-        this._xLength = _xLength;
-        this._yLength = _yLength;
-        this._height = _height;
-    }
-    get x() {
-        return this._x;
-    }
-    get y() {
-        return this._y;
-    }
-    get z() {
-        return this._z;
-    }
-    get xLength() {
-        return this._xLength;
-    }
-    get yLength() {
-        return this._yLength;
-    }
-    get height() {
-        return this._height;
-    }
-}
-export { Rectangle, RectangularPrism };
+export { Rectangle };
 //# sourceMappingURL=Shapes.js.map

@@ -8,6 +8,7 @@ import { VectorMath } from "./Vector.js";
 import { GameMap } from "./Map.js";
 import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
+import { Bullet } from "./Bullet.js";
 class HandleMouseClickCommand {
     mousePositionX = 0;
     mousePositionY = 0;
@@ -20,7 +21,9 @@ class HandleMouseClickCommand {
     }
 }
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
-    execute() { }
+    execute() {
+        new ShootBulletCommand(Game.instance.player).execute();
+    }
 }
 class MenuMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
     menu;
@@ -51,6 +54,16 @@ class ExitGameCommand {
         Game.instance.endGame();
         new UnsetMainGameControlsCommand().execute();
         new DisplayMenuAndSetMouseControllerCommand(Game.instance.mainMenu).execute();
+    }
+}
+class ShootBulletCommand {
+    player;
+    constructor(player) {
+        this.player = player;
+    }
+    execute() {
+        const NEW_BULLET = new Bullet(this.player);
+        Game.instance.bulletsBySelf.push(NEW_BULLET);
     }
 }
 class RenderViewForPlayerCommand {
@@ -180,8 +193,35 @@ class UpdatePlayerPositionToFirebaseCommand {
         });
     }
 }
-class MainGameMouseClickCommand extends HandleMouseClickCommand {
+class UpdateBulletPositionToFirebaseCommand {
+    bullet;
+    constructor(bullet) {
+        this.bullet = bullet;
+    }
     execute() {
+        update(ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`), {
+            x: this.bullet.x,
+            y: this.bullet.y,
+            z: this.bullet.z,
+            id: this.bullet.id,
+            sourcePlayerID: this.bullet.sourcePlayerID
+        });
+    }
+}
+class RemoveBulletFromFirebaseCommand {
+    bullet;
+    constructor(bullet) {
+        this.bullet = bullet;
+    }
+    execute() {
+        const BULLETS = Object.values(Game.instance.allBullets);
+        for (let i = 0; i < BULLETS.length; i++) {
+            if (BULLETS[i].id === this.bullet.id) {
+                delete Game.instance.allBullets[this.bullet.id];
+                set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
+                return;
+            }
+        }
     }
 }
 class LockPointerCommand {
@@ -212,7 +252,7 @@ class UnlockPointerCommand {
 class SetMainGameControlsCommand {
     execute() {
         Game.instance.controller.assignMouseMoveCommand(new MainGameHandleMouseMoveCommand());
-        Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickCommand());
+        Game.instance.controller.assignMouseClickCommand(new MainGameMouseClickedEventHandlerCommand());
     }
 }
 class UnsetMainGameControlsCommand {
@@ -231,5 +271,5 @@ class RemoveClientPlayerFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseCommand, UpdateBulletPositionToFirebaseCommand };
 //# sourceMappingURL=Command.js.map
