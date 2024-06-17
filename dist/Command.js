@@ -105,7 +105,7 @@ class RenderViewForPlayerCommand {
                 let viewportTopLeftToPointVector = VectorMath.addVectors(VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x), VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y));
                 let vectorFromPlayerToPoint = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector);
                 let rayAngles = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint);
-                const RAW_RAY_DISTANCE = Game.instance.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+                const RAW_RAY_DISTANCE = Game.instance.player.castBlockVisionRayVersion3(rayAngles[0], rayAngles[1]);
                 // custom shading
                 // render the pixel
                 const COLOR = PIXEL_COLORS[RAW_RAY_DISTANCE[1]];

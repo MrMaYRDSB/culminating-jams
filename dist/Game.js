@@ -22,7 +22,7 @@ class Game {
     gameLoop = undefined;
     FPS = 30;
     timeInterval = 1000 / this.FPS;
-    resolution = 15;
+    resolution = 10;
     gravitationalAccelerationConstant = 1;
     terminalVelocity = 12;
     maxRenderDistance = 8 * GameMap.tileSize;
@@ -222,7 +222,7 @@ class Game {
                 let viewportTopLeftToPointVector = VectorMath.addVectors(VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_HORIZONTAL_UNIT_VECTOR, x), VectorMath.convertUnitVectorToVector(PLAYER_VIEWPORT_VERTICAL_UNIT_VECTOR, y));
                 let vectorFromPlayerToPoint = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector);
                 let rayAngles = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint);
-                const RAW_RAY_DISTANCE = this.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+                const RAW_RAY_DISTANCE = this.player.castBlockVisionRayVersion3(rayAngles[0], rayAngles[1]);
                 // custom shading
                 // render the pixel
                 const COLOR = PIXEL_COLORS[RAW_RAY_DISTANCE[1]];

@@ -55,6 +55,7 @@ class VectorMath {
     return [uv[0] * magnitude, uv[1] * magnitude, uv[2] * magnitude]
   }
 
+
   public static scalarMultiply(v: Vector, s: number): Vector {
     return [v[0] * s, v[1] * s, v[2] * s]
   }

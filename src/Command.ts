@@ -149,7 +149,7 @@ class RenderViewForPlayerCommand implements Command {
         let vectorFromPlayerToPoint: Vector = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector)
         let rayAngles: Direction = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint)
 
-        const RAW_RAY_DISTANCE: number[] = Game.instance.player.castBlockVisionRayVersion2(rayAngles[0], rayAngles[1]);
+        const RAW_RAY_DISTANCE: number[] = Game.instance.player.castBlockVisionRayVersion3(rayAngles[0], rayAngles[1]);
         
         // custom shading
         // render the pixel
