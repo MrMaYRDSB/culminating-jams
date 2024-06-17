@@ -1,4 +1,4 @@
-import { UpdatePlayerPositionToFirebaseCommand } from "./Command.js";
+import { UpdateLaserToFirebaseCommand, UpdatePlayerPositionToFirebaseCommand } from "./Command.js";
 import { Game } from "./Game.js";
 import { GameMap, PIXEL_COLORS } from "./Map.js";
 //@ts-ignore Import module
@@ -6,6 +6,7 @@ import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nano
 import { Utilities } from "./Utilities.js";
 import { VectorMath } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
+import { Laser } from "./Laser.js";
 class Player {
     static size = 56;
     // note that x and y are center values
@@ -29,6 +30,10 @@ class Player {
     maxPitch = Math.PI / 2;
     velocityVector = [0, 0, 0];
     _directionVector = [1, 0, 0];
+    _laser = new Laser(this);
+    get laser() {
+        return this._laser;
+    }
     get x() {
         return this._x;
     }
@@ -79,6 +84,9 @@ class Player {
         if (this.grounded) {
             this.velocityVector[2] = 12;
         }
+    }
+    get position() {
+        return [this._x, this._y, this._z];
     }
     setLocation(location) {
         this._x = location[0];
@@ -205,6 +213,8 @@ class Player {
         }
     }
     update() {
+        this._laser.adjustToPlayer(this);
+        new UpdateLaserToFirebaseCommand(this._laser).execute();
         this.currentShootingCooldown = Math.max(this.currentShootingCooldown - 1000 / Game.instance.FPS, 0);
         this._directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);
         this.modifyVelocityVectorBasedOnIntendedVector();

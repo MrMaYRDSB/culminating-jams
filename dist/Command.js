@@ -22,7 +22,8 @@ class HandleMouseClickCommand {
 }
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
     execute() {
-        new ShootBulletCommand(Game.instance.player).execute();
+        // new ShootBulletCommand(Game.instance.player).execute()
+        new ToggleLaserCommand().execute();
     }
 }
 class MenuMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
@@ -222,6 +223,26 @@ class UpdateBulletPositionToFirebaseCommand {
         });
     }
 }
+class UpdateLaserToFirebaseCommand {
+    laser;
+    constructor(laser) {
+        this.laser = laser;
+    }
+    execute() {
+        update(ref(FirebaseClient.instance.db, `/lasers/${this.laser.id}`), {
+            position: this.laser.position,
+            direction: this.laser.directionVector,
+            isOn: this.laser.isOn,
+            id: this.laser.id,
+            sourcePlayerID: this.laser.sourcePlayerID
+        });
+    }
+}
+class RemoveOwnLaserFromFirebaseCommand {
+    execute() {
+        set(ref(FirebaseClient.instance.db, `/lasers`), Game.instance.otherLasers);
+    }
+}
 class RemoveBulletFromFirebaseByIDCommand {
     bulletid;
     constructor(bulletid) {
@@ -261,6 +282,11 @@ class UnlockPointerCommand {
             //@ts-ignorets-ignore
             document.webkitExitPointerLock;
         document.exitPointerLock();
+    }
+}
+class ToggleLaserCommand {
+    execute() {
+        Game.instance.player.laser.toggleLaser();
     }
 }
 class SetMainGameControlsCommand {
@@ -312,5 +338,5 @@ class RemoveAllBulletsBySelfFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, UpdateLaserToFirebaseCommand, RemoveOwnLaserFromFirebaseCommand, };
 //# sourceMappingURL=Command.js.map

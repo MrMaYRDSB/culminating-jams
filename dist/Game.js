@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RemoveOwnLaserFromFirebaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -39,6 +39,7 @@ class Game {
     bulletsToRemove = [];
     otherPlayers = {};
     allBullets = {};
+    otherLasers = {};
     healthBar = new Rectangle(Canvas.WIDTH / 2 - 300, Canvas.HEIGHT - 80, "Black", 600, 60);
     get mainMenu() {
         return this._mainMenu;
@@ -64,6 +65,15 @@ class Game {
                 this.otherPlayers = snapshot.val();
                 //Remove the player, but keep all the other users
                 delete this.otherPlayers[this.player.id];
+            }
+        }, { onlyOnce: true });
+        onValue(ref(FirebaseClient.instance.db, "/lasers"), (snapshot) => {
+            if (snapshot.val()) {
+                this.otherLasers = snapshot.val();
+                //Remove the player's laser
+                if (this.player.laser != undefined) {
+                    delete this.otherLasers[this.player.laser.id];
+                }
             }
         }, { onlyOnce: true });
         onValue(ref(FirebaseClient.instance.db, "/bullets"), (snapshot) => {
@@ -102,6 +112,7 @@ class Game {
             this.player.update();
             this.updateOwnBulletsAndUpdateToFirebase();
             this.checkPlayerCollisionWithBullets();
+            this.checkPlayerCollisionWithLasers();
             this.renderForPlayer();
             this.renderPlayerUI();
             if (this.player.health <= 0) {
@@ -147,10 +158,11 @@ class Game {
         clearInterval(this.gameLoop);
         new RemoveClientPlayerFromDatabaseCommand().execute();
         new RemoveAllBulletsBySelfFromDatabaseCommand().execute();
+        new RemoveOwnLaserFromFirebaseCommand().execute();
         this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     }
     checkPlayerCollisionWithBullets() {
-        const BULLET_POSITIONS = Object.values(Game.instance.allBullets);
+        const BULLET_POSITIONS = Object.values(this.allBullets);
         for (let bullet of BULLET_POSITIONS) {
             const bmin = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
             const bmax = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
@@ -158,6 +170,21 @@ class Game {
                 bullet.sourcePlayerID !== this.player.id) {
                 this.player.takeDamage(1);
                 new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute();
+            }
+        }
+    }
+    checkPlayerCollisionWithLasers() {
+        const LASERS = Object.values(this.otherLasers);
+        for (let laser of LASERS) {
+            const RESULTS = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax);
+            if (RESULTS !== null) {
+                for (let point of RESULTS) {
+                    if (VectorMath.isSameDirection(laser.direction, VectorMath.drawVectorFromP1toP2(laser.position, point))) {
+                        // player is hit
+                        this.player.takeDamage(0.1);
+                        break;
+                    }
+                }
             }
         }
     }

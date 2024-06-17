@@ -16,6 +16,7 @@ import { GameMap } from "./Map.js";
 import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
 import { Bullet } from "./Bullet.js";
+import { Laser } from "./Laser.js";
 
 interface Command {
   execute(): void;
@@ -40,7 +41,9 @@ abstract class HandleMouseClickCommand implements Command {
 
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand{
   public execute(): void {
-    new ShootBulletCommand(Game.instance.player).execute()
+    // new ShootBulletCommand(Game.instance.player).execute()
+
+    new ToggleLaserCommand().execute()
   }
 }
 
@@ -296,6 +299,32 @@ class UpdateBulletPositionToFirebaseCommand implements Command {
 }
 
 
+class UpdateLaserToFirebaseCommand implements Command {
+  constructor(protected laser: Laser) { }
+
+  public execute(): void {
+    update(
+      ref(FirebaseClient.instance.db, `/lasers/${this.laser.id}`),
+      {
+        position: this.laser.position,
+        direction: this.laser.directionVector,
+        isOn: this.laser.isOn,
+        id: this.laser.id,
+        sourcePlayerID: this.laser.sourcePlayerID
+      }
+    )
+  }
+}
+
+
+class RemoveOwnLaserFromFirebaseCommand implements Command {
+
+  public execute(): void {
+    set(ref(FirebaseClient.instance.db, `/lasers`), Game.instance.otherLasers)
+  }
+}
+
+
 class RemoveBulletFromFirebaseByIDCommand implements Command {
   constructor(protected bulletid: string) {
 
@@ -341,6 +370,13 @@ class UnlockPointerCommand implements Command {
     document.webkitExitPointerLock!;
   
     document.exitPointerLock();
+  }
+}
+
+
+class ToggleLaserCommand implements Command {
+  public execute(): void {
+    Game.instance.player.laser.toggleLaser()
   }
 }
 
@@ -426,5 +462,7 @@ export {
   UpdateBulletPositionToFirebaseCommand, 
   ExitGameThenDisplayMenuCommand, 
   UnlockPointerCommand,
-  RemoveAllBulletsBySelfFromDatabaseCommand
+  RemoveAllBulletsBySelfFromDatabaseCommand, 
+  UpdateLaserToFirebaseCommand,
+  RemoveOwnLaserFromFirebaseCommand,
 }
