@@ -302,14 +302,45 @@ class Game {
   private renderPlayerUI(): void {
 
     // Draw crosshair
-    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2, "white");
-    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 +1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 +1, "white");
-    Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 -1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 -1, "white");
+    if (this.player.laser.isOn) {
+      Utilities.drawLine(Canvas.WIDTH / 2 - 20, Canvas.HEIGHT / 2, Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 20, Canvas.HEIGHT / 2 + 1, Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 + 1, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 20, Canvas.HEIGHT / 2 - 1, Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 - 1, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 + 20, Canvas.HEIGHT / 2, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 + 20, Canvas.HEIGHT / 2 + 1, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 + 1, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 + 20, Canvas.HEIGHT / 2 - 1, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 - 1, "red");
 
-    Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "white");
-    Utilities.drawLine(Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2+10, "white");
-    Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 10, "white");
-    
+      Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 20, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 - 20, Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 - 10, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 20, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 10, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 20, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 + 20, Canvas.WIDTH / 2 + 1, Canvas.HEIGHT / 2 + 10, "red");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 20, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 10, "red");
+
+      // Draw laser shooting effect 
+      Utilities.fillShapeOnVertices(
+        [
+          [Canvas.WIDTH / 4 * 3 + 50, Canvas.HEIGHT], 
+          [Canvas.WIDTH / 4 * 3 - 50, Canvas.HEIGHT], 
+          [Canvas.WIDTH / 2, Canvas.HEIGHT / 2],
+        ],
+        "white"
+      )
+    } else {
+      Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2, Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2, "white");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 +1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 +1, "white");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 10, Canvas.HEIGHT / 2 -1 , Canvas.WIDTH / 2 + 10, Canvas.HEIGHT / 2 -1, "white");
+  
+      Utilities.drawLine(Canvas.WIDTH / 2, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2, Canvas.HEIGHT / 2 + 10, "white");
+      Utilities.drawLine(Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2-10, Canvas.WIDTH / 2 +1, Canvas.HEIGHT / 2+10, "white");
+      Utilities.drawLine(Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 - 10, Canvas.WIDTH / 2 - 1, Canvas.HEIGHT / 2 + 10, "white");
+    }
+
+
+    // Draw Health Bar
+    Canvas.instance.context.fillStyle = "red"
+    Canvas.instance.context.font = "24px Arial"
+    Canvas.instance.context.fillText("Health", Canvas.WIDTH/2 - 400, Canvas.HEIGHT-50)
     this.healthBar.draw()
     Canvas.instance.context.fillStyle = "red"
     Canvas.instance.context.fillRect(
@@ -317,14 +348,24 @@ class Game {
     )
 
 
+    // Draw Gauge Bar
+    Canvas.instance.context.fillStyle = "yellow"
+    Canvas.instance.context.fillText("Laser", Canvas.WIDTH - 80, Canvas.HEIGHT / 2 - 40)
+    Canvas.instance.context.fillText("Gauge", Canvas.WIDTH-80, Canvas.HEIGHT/2-20)
     Canvas.instance.context.fillStyle = "black"
     Canvas.instance.context.fillRect(
       Canvas.WIDTH-80, Canvas.HEIGHT/2, 60, Canvas.HEIGHT/2 - 20
     )
-    Canvas.instance.context.fillStyle = "yellow"
+    if (this.player.laser.canTurnOn) {
+      Canvas.instance.context.fillStyle = "yellow"
+    } else {
+      Canvas.instance.context.fillStyle = "gray"
+    }
+    const GAUGE_HEIGHT: number = (Canvas.HEIGHT / 2 - 60) * (this.player.laser.gauge / this.player.laser.maxGauge)
+    const MAX_GAUGE_HEIGHT: number = Canvas.HEIGHT/2 - 60
     Canvas.instance.context.fillRect(
-      Canvas.WIDTH - 70, Canvas.HEIGHT / 2 + 20, 40,
-      (Canvas.HEIGHT / 2 - 60) * (this.player.laser.gauge / this.player.laser.maxGauge)
+      Canvas.WIDTH - 70, Canvas.HEIGHT / 2 + 20 + MAX_GAUGE_HEIGHT - GAUGE_HEIGHT, 40,
+      GAUGE_HEIGHT
     )
   }
 

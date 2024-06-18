@@ -8,6 +8,7 @@ class Laser {
     _isOn = false;
     _gauge = 100;
     maxGauge = 100;
+    usableLimit = 40;
     id = nanoid(20);
     get damage() {
         return this._damage;
@@ -45,6 +46,9 @@ class Laser {
             this._gauge = 0;
             this.isOn = false;
         }
+    }
+    get canTurnOn() {
+        return this._gauge >= this.usableLimit;
     }
     regenerateFuel() {
         this._gauge += 1;

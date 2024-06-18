@@ -24,17 +24,30 @@ class Utilities {
   }
 
 
-  public static calculateAngleFromLeftOfCone(
-    totalAngle: number, totalLength: number, distanceFromLeft: number
-  ): number {
-    const OPPOSITE: number = totalLength / 2
-    const HEIGHT: number = (OPPOSITE) / (Math.tan(totalAngle / 2))
-    const ANGLE_FROM_CENTER: number = Math.atan(Math.abs(OPPOSITE - distanceFromLeft) / HEIGHT)
+  // public static calculateAngleFromLeftOfCone(
+  //   totalAngle: number, totalLength: number, distanceFromLeft: number
+  // ): number {
+  //   const OPPOSITE: number = totalLength / 2
+  //   const HEIGHT: number = (OPPOSITE) / (Math.tan(totalAngle / 2))
+  //   const ANGLE_FROM_CENTER: number = Math.atan(Math.abs(OPPOSITE - distanceFromLeft) / HEIGHT)
     
-    if (distanceFromLeft <= OPPOSITE) {
-      return (totalAngle / 2) - ANGLE_FROM_CENTER;
-    } else {
-      return (totalAngle / 2) + ANGLE_FROM_CENTER
+  //   if (distanceFromLeft <= OPPOSITE) {
+  //     return (totalAngle / 2) - ANGLE_FROM_CENTER;
+  //   } else {
+  //     return (totalAngle / 2) + ANGLE_FROM_CENTER
+  //   }
+  // }
+
+  public static fillShapeOnVertices(vertices: number[][], color: string) {
+    if (vertices.length >= 2) {
+      let shape: Path2D = new Path2D()
+      shape.moveTo(vertices[0][0], vertices[0][1])
+      for (let i = 1; i < vertices.length; i++) {
+        shape.lineTo(vertices[i][0], vertices[i][1])
+      }
+      shape.closePath()
+      Canvas.instance.context.fillStyle = color;
+      Canvas.instance.context.fill(shape)
     }
   }
 }

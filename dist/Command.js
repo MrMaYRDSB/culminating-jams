@@ -290,7 +290,7 @@ class ToggleLaserCommand {
             Game.instance.player.laser.isOn = false;
         }
         else {
-            if (Game.instance.player.laser.gauge > 0) {
+            if (Game.instance.player.laser.canTurnOn) {
                 Game.instance.player.laser.isOn = true;
             }
         }

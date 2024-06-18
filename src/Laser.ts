@@ -11,6 +11,7 @@ class Laser {
   protected _isOn: boolean = false;
   protected _gauge: number = 100;
   readonly maxGauge: number = 100;
+  readonly usableLimit: number = 40
   readonly id: string = nanoid(20);
   public get damage(): number {
     return this._damage
@@ -56,6 +57,11 @@ class Laser {
       this._gauge = 0
       this.isOn = false
     }
+  }
+
+
+  public get canTurnOn(): boolean {
+    return this._gauge >= this.usableLimit
   }
 
 
