@@ -12,6 +12,13 @@ import { Bullet } from "./Bullet.js";
 class HandleMouseClickCommand {
     mousePositionX = 0;
     mousePositionY = 0;
+    rightClick = false;
+    assignType(type) {
+        if (type === 2) {
+            this.rightClick = true;
+        }
+        return this;
+    }
     // either do this or get the coordinates directly from controller in the execute
     // (if having an extra method in commands are not allowed)
     assignCoordinates(x, y) {
@@ -22,8 +29,13 @@ class HandleMouseClickCommand {
 }
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
     execute() {
-        // new ShootBulletCommand(Game.instance.player).execute()
-        new ToggleLaserCommand().execute();
+        if (this.rightClick) {
+            new ShootBulletCommand(Game.instance.player).execute();
+            this.rightClick = false;
+        }
+        else {
+            new ToggleLaserCommand().execute();
+        }
     }
 }
 class MenuMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
@@ -74,11 +86,27 @@ class ShootBulletCommand {
     }
     execute() {
         if (this.player.canShoot) {
+            Game.instance.player.ammoGauge.useFuel(Bullet.fuelCost);
             const NEW_BULLET = new Bullet(this.player);
             new UploadBulletToFirebaseCommand(NEW_BULLET).execute();
             Game.instance.bulletsBySelf.push(NEW_BULLET);
             this.player.resetShootingCooldown();
         }
+    }
+}
+class DisplayTextCommand {
+    text;
+    x;
+    y;
+    maxW;
+    constructor(text, x, y, maxW) {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.maxW = maxW;
+    }
+    execute() {
+        Utilities.writeLargeText(this.text, this.x, this.y, this.maxW);
     }
 }
 class RenderViewForPlayerCommand {
@@ -290,7 +318,7 @@ class ToggleLaserCommand {
             Game.instance.player.laser.isOn = false;
         }
         else {
-            if (Game.instance.player.laser.canTurnOn) {
+            if (Game.instance.player.ammoGauge.canUse) {
                 Game.instance.player.laser.isOn = true;
             }
         }
@@ -345,5 +373,5 @@ class RemoveAllBulletsBySelfFromDatabaseCommand {
         set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
     }
 }
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, UpdateLaserToFirebaseCommand, RemoveOwnLaserFromFirebaseCommand, };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, UpdateLaserToFirebaseCommand, RemoveOwnLaserFromFirebaseCommand, DisplayTextCommand };
 //# sourceMappingURL=Command.js.map

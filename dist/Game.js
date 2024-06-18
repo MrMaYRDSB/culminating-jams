@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RemoveOwnLaserFromFirebaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, DisplayTextCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RemoveOwnLaserFromFirebaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -13,6 +13,7 @@ import { FirebaseClient } from "./FirebaseClient.js";
 import { VectorMath } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
 import { Rectangle } from "./Shapes.js";
+import { Laser } from "./Laser.js";
 class Game {
     static _instance;
     player = new Player();
@@ -132,9 +133,16 @@ class Game {
         }, this.timeInterval);
     }
     composeMainMenu() {
-        const START_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2, "start game");
+        const START_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2, "Start Game");
         START_BUTTON.addCommand(new StartGameCommand());
-        this._mainMenu.addMenuButton(START_BUTTON);
+        const INSTRUCTION_PARAGRAPH = `Welcome to my 3D PvP shooter Game, the goal of the game is to eliminate other players, click "Start Game" to begin, left click in game to toggle a hit-scan laser that does minimum damage, right click to shoot a slow projectile that does heavy damage.`;
+        const UI_EXPLAINATION_PARAGRAPH = "The red bar at the bottom is the health bar, when it reaches 0, it is Game Over. The bar on the right is your ammunition bar, lasers will consistently drain ammo when on, and bullets will cost a chunk of ammo when shooting. New lasers and bullets cannot be used when the ammo is below a certain threshold. Ammo will regenerate slower if used below that threshold (tip: try to keep ammo above the threshold, shoot in bursts)";
+        const INSTRUCTION_COMMAND = new DisplayTextCommand(INSTRUCTION_PARAGRAPH, Canvas.WIDTH / 4, Canvas.HEIGHT / 2, 300);
+        const UI_COMMAND = new DisplayTextCommand(UI_EXPLAINATION_PARAGRAPH, Canvas.WIDTH / 4 * 3 - 300, Canvas.HEIGHT / 2, 300);
+        this._mainMenu.
+            addMenuButton(START_BUTTON).
+            addDisplayElementCommand(INSTRUCTION_COMMAND).
+            addDisplayElementCommand(UI_COMMAND);
     }
     composePauseMenu() {
         const RESUME_BUTTON = new MenuButton(Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2, Canvas.HEIGHT / 2 - MenuButton.buttonHeight * 2, "Resume Game");
@@ -170,7 +178,7 @@ class Game {
             const bmax = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
             if (VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
                 bullet.sourcePlayerID !== this.player.id) {
-                this.player.takeDamage(1);
+                this.player.takeDamage(Bullet.damage);
                 new RemoveBulletFromFirebaseByIDCommand(bullet.id).execute();
             }
         }
@@ -185,7 +193,7 @@ class Game {
                 let currentPosition = [laser.position[0], laser.position[1], laser.position[2]];
                 while (true) {
                     if (VectorMath.isPointInCube(currentPosition, this.player.charMin, this.player.charMax)) {
-                        this.player.takeDamage(0.1);
+                        this.player.takeDamage(Laser.damage);
                         break;
                     }
                     if (currentPosition[0] >= 0 && currentPosition[0] < MAP_LENGTH_X &&
@@ -244,17 +252,17 @@ class Game {
         Canvas.instance.context.fillRect((Canvas.WIDTH / 2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40);
         // Draw Gauge Bar
         Canvas.instance.context.fillStyle = "yellow";
-        Canvas.instance.context.fillText("Laser", Canvas.WIDTH - 80, Canvas.HEIGHT / 2 - 40);
-        Canvas.instance.context.fillText("Gauge", Canvas.WIDTH - 80, Canvas.HEIGHT / 2 - 20);
+        Canvas.instance.context.fillText("Ammo", Canvas.WIDTH - 80, Canvas.HEIGHT / 2 - 40);
+        Canvas.instance.context.fillText("Gauge", Canvas.WIDTH - 80, Canvas.HEIGHT / 2 - 18);
         Canvas.instance.context.fillStyle = "black";
         Canvas.instance.context.fillRect(Canvas.WIDTH - 80, Canvas.HEIGHT / 2, 60, Canvas.HEIGHT / 2 - 20);
-        if (this.player.laser.canTurnOn) {
+        if (this.player.ammoGauge.canUse) {
             Canvas.instance.context.fillStyle = "yellow";
         }
         else {
             Canvas.instance.context.fillStyle = "gray";
         }
-        const GAUGE_HEIGHT = (Canvas.HEIGHT / 2 - 60) * (this.player.laser.gauge / this.player.laser.maxGauge);
+        const GAUGE_HEIGHT = (Canvas.HEIGHT / 2 - 60) * (this.player.ammoGauge.gauge / this.player.ammoGauge.maxGauge);
         const MAX_GAUGE_HEIGHT = Canvas.HEIGHT / 2 - 60;
         Canvas.instance.context.fillRect(Canvas.WIDTH - 70, Canvas.HEIGHT / 2 + 20 + MAX_GAUGE_HEIGHT - GAUGE_HEIGHT, 40, GAUGE_HEIGHT);
     }

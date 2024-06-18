@@ -17,6 +17,7 @@ import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
 import { Bullet } from "./Bullet.js";
 import { Laser } from "./Laser.js";
+import test from "node:test";
 
 interface Command {
   execute(): void;
@@ -27,9 +28,18 @@ abstract class HandleMouseClickCommand implements Command {
   protected mousePositionX: number = 0
   protected mousePositionY: number = 0
 
+  protected rightClick: boolean = false;
+
+  public assignType(type: number): HandleMouseClickCommand {
+    if (type === 2) {
+      this.rightClick = true
+    }
+    return this
+  }
+
   // either do this or get the coordinates directly from controller in the execute
   // (if having an extra method in commands are not allowed)
-  public assignCoordinates(x: number, y: number): Command {
+  public assignCoordinates(x: number, y: number): HandleMouseClickCommand {
     this.mousePositionX = x;
     this.mousePositionY = y;
     return this
@@ -41,9 +51,12 @@ abstract class HandleMouseClickCommand implements Command {
 
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand{
   public execute(): void {
-    // new ShootBulletCommand(Game.instance.player).execute()
-
-    new ToggleLaserCommand().execute()
+    if (this.rightClick) {
+      new ShootBulletCommand(Game.instance.player).execute()
+      this.rightClick = false
+    } else {
+      new ToggleLaserCommand().execute()
+    }
   }
 }
 
@@ -100,11 +113,21 @@ class ShootBulletCommand implements Command {
 
   public execute(): void {
     if (this.player.canShoot) {
+      Game.instance.player.ammoGauge.useFuel(Bullet.fuelCost)
       const NEW_BULLET: Bullet = new Bullet(this.player)
       new UploadBulletToFirebaseCommand(NEW_BULLET).execute()
       Game.instance.bulletsBySelf.push(NEW_BULLET)
       this.player.resetShootingCooldown()
     }
+  }
+}
+
+
+class DisplayTextCommand implements Command {
+  constructor(protected text: string, protected x: number, protected y: number, protected maxW: number) { }
+  
+  public execute(): void {
+    Utilities.writeLargeText(this.text, this.x, this.y, this.maxW)
   }
 }
 
@@ -379,7 +402,7 @@ class ToggleLaserCommand implements Command {
     if (Game.instance.player.laser.isOn) {
       Game.instance.player.laser.isOn = false
     } else {
-      if (Game.instance.player.laser.canTurnOn) {
+      if (Game.instance.player.ammoGauge.canUse) {
         Game.instance.player.laser.isOn = true
       }
     }
@@ -471,4 +494,5 @@ export {
   RemoveAllBulletsBySelfFromDatabaseCommand, 
   UpdateLaserToFirebaseCommand,
   RemoveOwnLaserFromFirebaseCommand,
+  DisplayTextCommand
 }

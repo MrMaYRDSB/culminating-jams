@@ -2,23 +2,17 @@ import { Vector, Position } from "./Vector.js";
 //@ts-ignore Import module
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
 import { Player } from "./Player.js";
+import { Game } from "./Game.js";
 
 class Laser {
-  protected _damage: number = 0.1
+  public static damage: number = 0.1
   protected _position: Position
   protected _directionVector: Vector
   protected _sourcePlayerID: string
   protected _isOn: boolean = false;
-  protected _gauge: number = 100;
-  readonly maxGauge: number = 100;
-  readonly usableLimit: number = 40
+  readonly fuelCost: number = 1
+
   readonly id: string = nanoid(20);
-  public get damage(): number {
-    return this._damage
-  }
-  public get gauge(): number {
-    return this._gauge
-  }
 
   public get isOn(): boolean {
     return this._isOn
@@ -52,23 +46,11 @@ class Laser {
 
 
   public useFuel(): void {
-    this._gauge -= 1;
-    if (this._gauge <= 0) {
-      this._gauge = 0
-      this.isOn = false
-    }
-  }
-
-
-  public get canTurnOn(): boolean {
-    return this._gauge >= this.usableLimit
-  }
-
-
-  public regenerateFuel(): void {
-    this._gauge += 1
-    if (this._gauge > this.maxGauge) {
-      this._gauge = this.maxGauge
+    if (Game.instance.player.ammoGauge.canUseFuel(this.fuelCost)) {
+      Game.instance.player.ammoGauge.useFuel(this.fuelCost)
+      if (!Game.instance.player.ammoGauge.hasFuel) {
+        this._isOn = false
+      }
     }
   }
 }

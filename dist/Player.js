@@ -7,6 +7,7 @@ import { Utilities } from "./Utilities.js";
 import { VectorMath } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
 import { Laser } from "./Laser.js";
+import { AmmoGauge } from "./Ammunition.js";
 class Player {
     static size = 56;
     // note that x and y are center values
@@ -24,6 +25,7 @@ class Player {
     maxHealth = 10;
     _health = this.maxHealth;
     id = nanoid(20);
+    ammoGauge = new AmmoGauge();
     grounded = false;
     shootingCooldown = 500;
     currentShootingCooldown = 0;
@@ -94,7 +96,7 @@ class Player {
         this._z = location[2];
     }
     get canShoot() {
-        return this.currentShootingCooldown === 0;
+        return this.currentShootingCooldown === 0 && this.ammoGauge.canUse;
     }
     resetShootingCooldown() {
         this.currentShootingCooldown = this.shootingCooldown;
@@ -218,7 +220,7 @@ class Player {
             this.laser.useFuel();
         }
         else {
-            this.laser.regenerateFuel();
+            this.ammoGauge.regenerateFuel();
         }
         new UpdateLaserToFirebaseCommand(this._laser).execute();
         this.currentShootingCooldown = Math.max(this.currentShootingCooldown - 1000 / Game.instance.FPS, 0);

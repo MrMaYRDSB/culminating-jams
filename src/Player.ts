@@ -7,6 +7,7 @@ import { Utilities } from "./Utilities.js";
 import { VectorMath, Vector, Position, Direction } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
 import { Laser } from "./Laser.js";
+import { AmmoGauge } from "./Ammunition.js";
 
 
 class Player {
@@ -28,6 +29,8 @@ class Player {
   private _health: number = this.maxHealth
 
   readonly id: string = nanoid(20);
+
+  readonly ammoGauge: AmmoGauge = new AmmoGauge()
 
 
   private grounded: boolean = false;
@@ -118,7 +121,7 @@ class Player {
   }
 
   public get canShoot(): boolean {
-    return this.currentShootingCooldown === 0;
+    return this.currentShootingCooldown === 0 && this.ammoGauge.canUse;
   }
 
 
@@ -267,7 +270,7 @@ class Player {
     if (this._laser.isOn) {
       this.laser.useFuel()
     } else {
-      this.laser.regenerateFuel()
+      this.ammoGauge.regenerateFuel()
     }
     new UpdateLaserToFirebaseCommand(this._laser).execute()
 

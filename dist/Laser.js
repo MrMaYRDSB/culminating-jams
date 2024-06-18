@@ -1,21 +1,14 @@
 //@ts-ignore Import module
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
+import { Game } from "./Game.js";
 class Laser {
-    _damage = 0.1;
+    static damage = 0.1;
     _position;
     _directionVector;
     _sourcePlayerID;
     _isOn = false;
-    _gauge = 100;
-    maxGauge = 100;
-    usableLimit = 40;
+    fuelCost = 1;
     id = nanoid(20);
-    get damage() {
-        return this._damage;
-    }
-    get gauge() {
-        return this._gauge;
-    }
     get isOn() {
         return this._isOn;
     }
@@ -41,19 +34,11 @@ class Laser {
         this._directionVector = p.directionVector;
     }
     useFuel() {
-        this._gauge -= 1;
-        if (this._gauge <= 0) {
-            this._gauge = 0;
-            this.isOn = false;
-        }
-    }
-    get canTurnOn() {
-        return this._gauge >= this.usableLimit;
-    }
-    regenerateFuel() {
-        this._gauge += 1;
-        if (this._gauge > this.maxGauge) {
-            this._gauge = this.maxGauge;
+        if (Game.instance.player.ammoGauge.canUseFuel(this.fuelCost)) {
+            Game.instance.player.ammoGauge.useFuel(this.fuelCost);
+            if (!Game.instance.player.ammoGauge.hasFuel) {
+                this._isOn = false;
+            }
         }
     }
 }

@@ -6,8 +6,10 @@ import { Game } from "./Game.js";
 import { GameMap } from "./Map.js";
 class Bullet {
     _player;
+    static damage = 2;
     static size = 10;
     static color = 0;
+    static fuelCost = 40;
     speed = 20;
     velocityVector;
     _x;
