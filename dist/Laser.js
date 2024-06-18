@@ -48,6 +48,9 @@ class Laser {
     }
     regenerateFuel() {
         this._gauge += 1;
+        if (this._gauge > this.maxGauge) {
+            this._gauge = this.maxGauge;
+        }
     }
 }
 export { Laser };

@@ -61,6 +61,9 @@ class Laser {
 
   public regenerateFuel(): void {
     this._gauge += 1
+    if (this._gauge > this.maxGauge) {
+      this._gauge = this.maxGauge
+    }
   }
 }
 
