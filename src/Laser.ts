@@ -9,9 +9,14 @@ class Laser {
   protected _directionVector: Vector
   protected _sourcePlayerID: string
   protected _isOn: boolean = false;
+  protected _gauge: number = 100;
+  readonly maxGauge: number = 100;
   readonly id: string = nanoid(20);
   public get damage(): number {
     return this._damage
+  }
+  public get gauge(): number {
+    return this._gauge
   }
 
   public get isOn(): boolean {
@@ -45,8 +50,17 @@ class Laser {
   }
 
 
-  public toggleLaser(): void {
-    this._isOn = !this._isOn
+  public useFuel(): void {
+    this._gauge -= 1;
+    if (this._gauge <= 0) {
+      this._gauge = 0
+      this.isOn = false
+    }
+  }
+
+
+  public regenerateFuel(): void {
+    this._gauge += 1
   }
 }
 

@@ -214,6 +214,12 @@ class Player {
     }
     update() {
         this._laser.adjustToPlayer(this);
+        if (this._laser.isOn) {
+            this.laser.useFuel();
+        }
+        else {
+            this.laser.regenerateFuel();
+        }
         new UpdateLaserToFirebaseCommand(this._laser).execute();
         this.currentShootingCooldown = Math.max(this.currentShootingCooldown - 1000 / Game.instance.FPS, 0);
         this._directionVector = VectorMath.convertYawAndPitchToUnitVector([this._yaw, this._pitch]);

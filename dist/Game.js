@@ -177,17 +177,27 @@ class Game {
     }
     checkPlayerCollisionWithLasers() {
         const LASERS = Object.values(this.otherLasers);
+        const MAP_LENGTH_Z = Game.instance.gameMap.map.length * GameMap.tileSize;
+        const MAP_LENGTH_Y = Game.instance.gameMap.map[0].length * GameMap.tileSize;
+        const MAP_LENGTH_X = Game.instance.gameMap.map[0][0].length * GameMap.tileSize;
         for (let laser of LASERS) {
             if (laser.isOn) {
-                const RESULTS = VectorMath.findLineCubeIntersections(laser.position, laser.direction, this.player.charMin, this.player.charMax);
-                if (RESULTS !== null) {
-                    for (let point of RESULTS) {
-                        if (VectorMath.isSameDirection(laser.direction, VectorMath.drawVectorFromP1toP2(laser.position, point))) {
-                            // player is hit
-                            this.player.takeDamage(0.1);
+                let currentPosition = [laser.position[0], laser.position[1], laser.position[2]];
+                while (true) {
+                    if (VectorMath.isPointInCube(currentPosition, this.player.charMin, this.player.charMax)) {
+                        this.player.takeDamage(0.1);
+                        break;
+                    }
+                    if (currentPosition[0] >= 0 && currentPosition[0] < MAP_LENGTH_X &&
+                        currentPosition[1] >= 0 && currentPosition[1] < MAP_LENGTH_Y &&
+                        currentPosition[2] >= 0 && currentPosition[2] < MAP_LENGTH_Z) {
+                        if (Game.instance.gameMap.map[Math.floor(currentPosition[2] / GameMap.tileSize)][Math.floor(currentPosition[1] / GameMap.tileSize)][Math.floor(currentPosition[0] / GameMap.tileSize)] === 1) {
                             break;
                         }
                     }
+                    currentPosition[0] += laser.direction[0];
+                    currentPosition[1] += laser.direction[1];
+                    currentPosition[2] += laser.direction[2];
                 }
             }
         }
@@ -206,6 +216,10 @@ class Game {
         this.healthBar.draw();
         Canvas.instance.context.fillStyle = "red";
         Canvas.instance.context.fillRect((Canvas.WIDTH / 2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40);
+        Canvas.instance.context.fillStyle = "black";
+        Canvas.instance.context.fillRect(Canvas.WIDTH - 80, Canvas.HEIGHT / 2, 60, Canvas.HEIGHT / 2 - 20);
+        Canvas.instance.context.fillStyle = "yellow";
+        Canvas.instance.context.fillRect(Canvas.WIDTH - 70, Canvas.HEIGHT / 2 + 20, 40, (Canvas.HEIGHT / 2 - 60) * (this.player.laser.gauge / this.player.laser.maxGauge));
     }
     renderForPlayer() {
         this.clearScreen();

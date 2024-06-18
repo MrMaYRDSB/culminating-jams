@@ -264,6 +264,11 @@ class Player {
 
   public update(): void {
     this._laser.adjustToPlayer(this)
+    if (this._laser.isOn) {
+      this.laser.useFuel()
+    } else {
+      this.laser.regenerateFuel()
+    }
     new UpdateLaserToFirebaseCommand(this._laser).execute()
 
 

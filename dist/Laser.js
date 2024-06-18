@@ -6,9 +6,14 @@ class Laser {
     _directionVector;
     _sourcePlayerID;
     _isOn = false;
+    _gauge = 100;
+    maxGauge = 100;
     id = nanoid(20);
     get damage() {
         return this._damage;
+    }
+    get gauge() {
+        return this._gauge;
     }
     get isOn() {
         return this._isOn;
@@ -34,8 +39,15 @@ class Laser {
         this._position = p.position;
         this._directionVector = p.directionVector;
     }
-    toggleLaser() {
-        this._isOn = !this._isOn;
+    useFuel() {
+        this._gauge -= 1;
+        if (this._gauge <= 0) {
+            this._gauge = 0;
+            this.isOn = false;
+        }
+    }
+    regenerateFuel() {
+        this._gauge += 1;
     }
 }
 export { Laser };

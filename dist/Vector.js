@@ -63,6 +63,14 @@ class VectorMath {
     static getDistance(p1, p2) {
         return VectorMath.getMagnitude([p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]]);
     }
+    static isPointInCube(point, cubeMin, cubeMax) {
+        if (point[0] >= cubeMin[0] && point[0] <= cubeMax[0] &&
+            point[1] >= cubeMin[1] && point[1] <= cubeMax[1] &&
+            point[2] >= cubeMin[2] && point[2] <= cubeMax[2]) {
+            return true;
+        }
+        return false;
+    }
     static dotProduct(v1, v2) {
         return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
     }

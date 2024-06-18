@@ -286,7 +286,14 @@ class UnlockPointerCommand {
 }
 class ToggleLaserCommand {
     execute() {
-        Game.instance.player.laser.toggleLaser();
+        if (Game.instance.player.laser.isOn) {
+            Game.instance.player.laser.isOn = false;
+        }
+        else {
+            if (Game.instance.player.laser.gauge > 0) {
+                Game.instance.player.laser.isOn = true;
+            }
+        }
     }
 }
 class SetMainGameControlsCommand {

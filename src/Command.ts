@@ -376,7 +376,13 @@ class UnlockPointerCommand implements Command {
 
 class ToggleLaserCommand implements Command {
   public execute(): void {
-    Game.instance.player.laser.toggleLaser()
+    if (Game.instance.player.laser.isOn) {
+      Game.instance.player.laser.isOn = false
+    } else {
+      if (Game.instance.player.laser.gauge > 0) {
+        Game.instance.player.laser.isOn = true
+      }
+    }
   }
 }
 

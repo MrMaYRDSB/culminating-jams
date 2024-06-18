@@ -78,7 +78,18 @@ class VectorMath {
   }
 
   public static getDistance(p1: Position, p2: Position): number {
-    return VectorMath.getMagnitude([p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]])
+    return VectorMath.getMagnitude([p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]])
+  }
+
+  public static isPointInCube(point: Position, cubeMin: Position, cubeMax: Position): boolean {
+    if (
+      point[0] >= cubeMin[0] && point[0] <= cubeMax[0] &&
+      point[1] >= cubeMin[1] && point[1] <= cubeMax[1] &&
+      point[2] >= cubeMin[2] && point[2] <= cubeMax[2]
+    ) {
+      return true
+    }
+    return false
   }
 
   public static dotProduct(v1: Vector, v2: Vector): number {
