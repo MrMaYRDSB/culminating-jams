@@ -22,14 +22,13 @@ class Game {
   readonly player: Player = new Player()
   readonly gameMap: GameMap = new GameMap()
   readonly controller: PlayerController = new PlayerController(this.player)
-  private context = Canvas.instance.context;
+  private context: CanvasRenderingContext2D = Canvas.instance.context;
   private gameLoop: any = undefined;
   readonly FPS: number = 30;
   private timeInterval: number = 1000/this.FPS
   readonly resolution: number = 10;
   readonly gravitationalAccelerationConstant: number = 1
   readonly terminalVelocity: number = 12
-  readonly maxRenderDistance: number = 8 * GameMap.tileSize;
   readonly pauseMenuBrightnessMultiplier: number = 0.1
   readonly defaultBrightnessMultiplier: number = 0.9;
   public brightnessMultiplier: number = this.defaultBrightnessMultiplier;
@@ -49,9 +48,6 @@ class Game {
   public otherPlayers = {}
   public allBullets = {}
   public otherLasers = {}
-
-
-  public healthBar: Rectangle = new Rectangle(Canvas.WIDTH/2 - 300, Canvas.HEIGHT-80, "Black", 600, 60)
 
 
   public get mainMenu(): CompositeMenu {
@@ -74,11 +70,11 @@ class Game {
     });
   }
 
-  public start() {
+  public start(): void {
     new DisplayMenuAndSetMouseControllerCommand(this.mainMenu).execute()
   }
 
-  public updateFromDatabase(): void {
+  private updateFromDatabase(): void {
     onValue(
       ref(FirebaseClient.instance.db, "/players"),
       (snapshot) => {
@@ -119,8 +115,7 @@ class Game {
   }
 
 
-
-  public updateOwnBulletsAndUpdateToFirebase(): void {
+  private updateOwnBulletsAndUpdateToFirebase(): void {
     for (let i = 0; i < this.bulletsBySelf.length; i++) {
       const bullet: Bullet = this.bulletsBySelf[i]
       bullet.updatePosition();
@@ -138,16 +133,10 @@ class Game {
         this.bulletsToRemove.splice(i, 1)
       }
     }
-
-    // delete ghost bullets (that do not exist in db)
-    
   }
 
 
-  
-
-
-  public startGame() {
+  public startGame(): void {
     this.player.setLocation(this.spawnLocation)
     this.player.setDirection(this.spawnDirection)
     this.player.resetHealth()
@@ -175,9 +164,6 @@ class Game {
         new DisplayMenuAndSetMouseControllerCommand(this.pauseMenu).execute()
       }
 
-
-
-
       // displays FPS
       this.context.font = "24px Arial"
       this.context.fillStyle = "white"
@@ -185,7 +171,8 @@ class Game {
     }, this.timeInterval);
   }
 
-  public composeMainMenu(): void {
+
+  private composeMainMenu(): void {
     const START_BUTTON: MenuButton = new MenuButton(
       Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
       Canvas.HEIGHT / 2 - MenuButton.buttonHeight / 2,
@@ -207,8 +194,7 @@ class Game {
   }
 
 
-  public composePauseMenu(): void {
-    
+  private composePauseMenu(): void { 
     const RESUME_BUTTON: MenuButton = new MenuButton(
       Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
       Canvas.HEIGHT / 2 - MenuButton.buttonHeight * 2,
@@ -227,6 +213,7 @@ class Game {
     this.pauseMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand())
   }
 
+
   private composeGameOverMenu(): void {
     const MENU_BUTTON: MenuButton = new MenuButton(
       Canvas.WIDTH / 2 - MenuButton.buttonWidth / 2,
@@ -239,7 +226,7 @@ class Game {
     this.gameOverMenu.assignRenderBackgroundCommand(new RenderViewForPlayerCommand())
   }
 
-  public endGame() {
+  public endGame(): void {
     this.isPaused = true
     this.controller.assignEscKeyPressedCommand(undefined)
     this.brightnessMultiplier = Game.instance.pauseMenuBrightnessMultiplier
@@ -249,7 +236,6 @@ class Game {
     new RemoveClientPlayerFromDatabaseCommand().execute()
     new RemoveAllBulletsBySelfFromDatabaseCommand().execute()
     new RemoveOwnLaserFromFirebaseCommand().execute()
-    this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections()
   }
 
 
@@ -352,8 +338,9 @@ class Game {
     // Draw Health Bar
     Canvas.instance.context.fillStyle = "red"
     Canvas.instance.context.font = "24px Arial"
-    Canvas.instance.context.fillText("Health", Canvas.WIDTH/2 - 400, Canvas.HEIGHT-50)
-    this.healthBar.draw()
+    Canvas.instance.context.fillText("Health", Canvas.WIDTH / 2 - 400, Canvas.HEIGHT - 50)
+    Canvas.instance.context.fillStyle = "black"
+    Canvas.instance.context.fillRect(Canvas.WIDTH/2 - 300, Canvas.HEIGHT - 80, 600, 60)
     Canvas.instance.context.fillStyle = "red"
     Canvas.instance.context.fillRect(
       (Canvas.WIDTH/2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40
@@ -382,7 +369,7 @@ class Game {
   }
 
 
-  private renderForPlayer() {
+  private renderForPlayer(): void {
     this.clearScreen()
 
     const ADJACENT_LENGTH_MAGNITUDE: number = (Canvas.WIDTH / 2) / Math.tan(this.player.fov / 2)

@@ -12,7 +12,6 @@ import { ref, onValue,
 import { FirebaseClient } from "./FirebaseClient.js";
 import { VectorMath } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
-import { Rectangle } from "./Shapes.js";
 import { Laser } from "./Laser.js";
 class Game {
     static _instance;
@@ -26,7 +25,6 @@ class Game {
     resolution = 10;
     gravitationalAccelerationConstant = 1;
     terminalVelocity = 12;
-    maxRenderDistance = 8 * GameMap.tileSize;
     pauseMenuBrightnessMultiplier = 0.1;
     defaultBrightnessMultiplier = 0.9;
     brightnessMultiplier = this.defaultBrightnessMultiplier;
@@ -41,7 +39,6 @@ class Game {
     otherPlayers = {};
     allBullets = {};
     otherLasers = {};
-    healthBar = new Rectangle(Canvas.WIDTH / 2 - 300, Canvas.HEIGHT - 80, "Black", 600, 60);
     get mainMenu() {
         return this._mainMenu;
     }
@@ -247,7 +244,8 @@ class Game {
         Canvas.instance.context.fillStyle = "red";
         Canvas.instance.context.font = "24px Arial";
         Canvas.instance.context.fillText("Health", Canvas.WIDTH / 2 - 400, Canvas.HEIGHT - 50);
-        this.healthBar.draw();
+        Canvas.instance.context.fillStyle = "black";
+        Canvas.instance.context.fillRect(Canvas.WIDTH / 2 - 300, Canvas.HEIGHT - 80, 600, 60);
         Canvas.instance.context.fillStyle = "red";
         Canvas.instance.context.fillRect((Canvas.WIDTH / 2) - 290, Canvas.HEIGHT - 70, (this.player.health / this.player.maxHealth) * 580, 40);
         // Draw Gauge Bar

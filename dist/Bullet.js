@@ -15,8 +15,7 @@ class Bullet {
     _x;
     _y;
     _z;
-    _id = nanoid(25);
-    size = Bullet.size;
+    id = nanoid(25);
     get x() {
         return this._x;
     }
@@ -25,9 +24,6 @@ class Bullet {
     }
     get z() {
         return this._z;
-    }
-    get id() {
-        return this._id;
     }
     get sourcePlayerID() {
         return this._player.id;
@@ -52,14 +48,14 @@ class Bullet {
     }
     collideWithWall() {
         const VERTICES = [
-            [this._x + this.size / 2, this._y - this.size / 2, this._z + this.size / 2],
-            [this._x + this.size / 2, this._y + this.size / 2, this._z + this.size / 2],
-            [this._x - this.size / 2, this._y + this.size / 2, this._z + this.size / 2],
-            [this._x - this.size / 2, this._y - this.size / 2, this._z + this.size / 2],
-            [this._x + this.size / 2, this._y - this.size / 2, this._z - this.size / 2],
-            [this._x + this.size / 2, this._y + this.size / 2, this._z - this.size / 2],
-            [this._x - this.size / 2, this._y - this.size / 2, this._z - this.size / 2],
-            [this._x - this.size / 2, this._y + this.size / 2, this._z - this.size / 2],
+            [this._x + Bullet.size / 2, this._y - Bullet.size / 2, this._z + Bullet.size / 2],
+            [this._x + Bullet.size / 2, this._y + Bullet.size / 2, this._z + Bullet.size / 2],
+            [this._x - Bullet.size / 2, this._y + Bullet.size / 2, this._z + Bullet.size / 2],
+            [this._x - Bullet.size / 2, this._y - Bullet.size / 2, this._z + Bullet.size / 2],
+            [this._x + Bullet.size / 2, this._y - Bullet.size / 2, this._z - Bullet.size / 2],
+            [this._x + Bullet.size / 2, this._y + Bullet.size / 2, this._z - Bullet.size / 2],
+            [this._x - Bullet.size / 2, this._y - Bullet.size / 2, this._z - Bullet.size / 2],
+            [this._x - Bullet.size / 2, this._y + Bullet.size / 2, this._z - Bullet.size / 2],
         ];
         for (let vertex of VERTICES) {
             if (this.pointInWall(vertex[0], vertex[1], vertex[2])) {

@@ -28,7 +28,7 @@ class Canvas {
   }
 
 
-  public startGame() {
+  public startGame(): void {
     Game.instance
     Game.instance.start()
   }

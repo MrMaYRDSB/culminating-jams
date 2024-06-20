@@ -1,5 +1,5 @@
 class AmmoGauge {
-  protected _gauge: number = 100;
+  private _gauge: number = 100;
   readonly maxGauge: number = 100;
   readonly usableLimit: number = 40
   readonly regenerationSpeed: number = 0.2
@@ -15,7 +15,7 @@ class AmmoGauge {
     return this._gauge >= n
   }
 
-  public useFuel(n: number) {
+  public useFuel(n: number): void {
     this._gauge -= n;
     if (this._gauge < 0) {
       this._gauge = 0

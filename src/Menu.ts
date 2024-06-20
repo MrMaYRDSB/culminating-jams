@@ -17,7 +17,7 @@ class MenuButton extends Rectangle implements MenuProperties {
   constructor(
     x: number,
     y: number,
-    protected title: string,
+    private title: string,
     color: string = "black",
     width: number = MenuButton.buttonWidth,
     height: number = MenuButton.buttonHeight
@@ -76,12 +76,12 @@ class MenuButton extends Rectangle implements MenuProperties {
 
 
 class CompositeMenu implements MenuProperties {
-  protected _buttons: MenuButton[] = [];
-  protected command: Command | undefined;
-  protected renderBackgroundCommand: Command | undefined
-  protected displayElementCommands: Command[] = [];
+  private _buttons: MenuButton[] = [];
+  private command: Command | undefined;
+  private renderBackgroundCommand: Command | undefined
+  private displayElementCommands: Command[] = [];
 
-  constructor(protected title: string) { }
+  constructor(private title: string) { }
 
   public addCommand(c: Command): CompositeMenu {
     this.command = c;

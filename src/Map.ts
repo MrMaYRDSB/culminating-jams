@@ -1,4 +1,3 @@
-import { Game } from "./Game";
 
 const PIXEL_COLORS: number[][] = [[0, 255, 255], [0, 255, 0], [200, 200, 200], [255, 255, 0], 	[169, 169, 169]]
 enum Colors {
@@ -12,19 +11,14 @@ enum Colors {
 
 class GameMap {
   public static tileSize = 64;
-  public baseTileColor: number[] = [255, 255, 255]
-  public floorColor: number[] = [64, 64, 64]
-  public ceilingColor: number[] = [0, 0, 125]
+  public static _wallBitSize: number = 4
+  public static wallTexture: number[][][] = []
 
-  // horizontal & vertical
-  // texture must have tileSize/wallBitSize rows and columns
-  static _wallBitSize: number = 4
 
   public static get wallBitSize(): number {
     return GameMap._wallBitSize
   }
 
-  static wallTexture: number[][][] = []
 
 
   constructor() {

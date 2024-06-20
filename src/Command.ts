@@ -17,17 +17,16 @@ import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
 import { Bullet } from "./Bullet.js";
 import { Laser } from "./Laser.js";
-import test from "node:test";
+
 
 interface Command {
   execute(): void;
 }
 
+
 abstract class HandleMouseClickCommand implements Command {
-  
   protected mousePositionX: number = 0
   protected mousePositionY: number = 0
-
   protected rightClick: boolean = false;
 
   public assignType(type: number): HandleMouseClickCommand {
@@ -97,7 +96,7 @@ class ExitGameCommand implements Command {
 
 
 class ExitGameThenDisplayMenuCommand extends ExitGameCommand implements Command {
-  constructor(protected menu: CompositeMenu) {
+  constructor(private menu: CompositeMenu) {
     super()
   }
 
@@ -109,7 +108,7 @@ class ExitGameThenDisplayMenuCommand extends ExitGameCommand implements Command 
 
 
 class ShootBulletCommand implements Command {
-  constructor(protected player: Player) { }
+  constructor(private player: Player) { }
 
   public execute(): void {
     if (this.player.canShoot) {
@@ -124,10 +123,33 @@ class ShootBulletCommand implements Command {
 
 
 class DisplayTextCommand implements Command {
-  constructor(protected text: string, protected x: number, protected y: number, protected maxW: number) { }
+  constructor(private text: string, private x: number, private y: number, private maxWidth: number) { }
   
   public execute(): void {
-    Utilities.writeLargeText(this.text, this.x, this.y, this.maxW)
+    // modified code from StackOverflow to autowrap texts in canvas
+
+    let fontSize: number = 16
+    let fontFace: string = "Arial"
+    let words = this.text.split(' ');
+    let line = '';
+    let lineHeight=fontSize;
+    Canvas.instance.context.fillStyle = "black"
+    Canvas.instance.context.font = fontSize + "px " + fontFace;
+  
+    for(let n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + ' ';
+      let metrics = Canvas.instance.context.measureText(testLine);
+      let testWidth = metrics.width;
+      if (testWidth > this.maxWidth) {
+        Canvas.instance.context.fillText(line, this.x, this.y);
+        line = words[n] + ' ';
+        this.y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+    Canvas.instance.context.fillText(line, this.x, this.y);
   }
 }
 
@@ -271,7 +293,7 @@ abstract class HandleMouseMoveCommand implements Command {
 
 
 class UndoLastMouseMoveCommand implements Command {
-  constructor(protected c: HandleMouseMoveCommand) { }
+  constructor(private c: HandleMouseMoveCommand) { }
   
   public execute(): void {
     Game.instance.player.rotatePitch(this.c.previousDY * Game.instance.player.rotationSpeed * Game.instance.controller.sensitivity)
@@ -287,8 +309,9 @@ class MainGameHandleMouseMoveCommand extends HandleMouseMoveCommand implements C
   }
 }
 
+
 class UpdatePlayerPositionToFirebaseCommand implements Command {
-  constructor(protected player: Player) { }
+  constructor(private player: Player) { }
 
   public execute(): void {
     update(
@@ -305,7 +328,7 @@ class UpdatePlayerPositionToFirebaseCommand implements Command {
 
 
 class UpdateBulletPositionToFirebaseCommand implements Command {
-  constructor(protected bullet: Bullet) { }
+  constructor(private bullet: Bullet) { }
 
   public execute(): void {
     update(
@@ -323,7 +346,7 @@ class UpdateBulletPositionToFirebaseCommand implements Command {
 
 
 class UpdateLaserToFirebaseCommand implements Command {
-  constructor(protected laser: Laser) { }
+  constructor(private laser: Laser) { }
 
   public execute(): void {
     update(
@@ -341,7 +364,6 @@ class UpdateLaserToFirebaseCommand implements Command {
 
 
 class RemoveOwnLaserFromFirebaseCommand implements Command {
-
   public execute(): void {
     set(ref(FirebaseClient.instance.db, `/lasers`), Game.instance.otherLasers)
   }
@@ -349,9 +371,8 @@ class RemoveOwnLaserFromFirebaseCommand implements Command {
 
 
 class RemoveBulletFromFirebaseByIDCommand implements Command {
-  constructor(protected bulletid: string) {
+  constructor(private bulletid: string) { }
 
-  }
   public execute(): void {
     const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[]
       = Object.values(Game.instance.allBullets)
@@ -364,6 +385,46 @@ class RemoveBulletFromFirebaseByIDCommand implements Command {
     }
   }
 }
+
+
+class UploadBulletToFirebaseCommand implements Command {
+  constructor(protected bullet: Bullet) { }
+
+  public execute(): void {
+    update(
+      ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`),
+      {
+        x: this.bullet.x, 
+        y: this.bullet.y,
+        z: this.bullet.z,
+        id: this.bullet.id,
+        sourcePlayerID: this.bullet.sourcePlayerID
+      }
+    )
+  }
+}
+
+
+class RemoveClientPlayerFromDatabaseCommand implements Command {
+  public execute(): void {
+    set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers)
+  }
+}
+
+
+class RemoveAllBulletsBySelfFromDatabaseCommand implements Command {
+  public execute(): void {
+    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
+    for (let i = 0; i < BULLETS.length; i++) {
+      if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
+        delete Game.instance.allBullets[BULLETS[i].id];
+        console.log("deleted at the end")
+      }
+    }
+    set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets)
+  }
+}
+
 
 class LockPointerCommand implements Command {
   public execute(): void {
@@ -426,51 +487,6 @@ class UnsetMainGameControlsCommand implements Command {
 }
 
 
-class ClearAllPlayersFromDatabaseCommand implements Command {
-  public execute(): void {
-    set(ref(FirebaseClient.instance.db, `/players`), {})
-  }
-}
-
-
-class UploadBulletToFirebaseCommand implements Command {
-  constructor(protected bullet: Bullet) { }
-
-  public execute(): void {
-    update(
-      ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`),
-      {
-        x: this.bullet.x, 
-        y: this.bullet.y,
-        z: this.bullet.z,
-        id: this.bullet.id,
-        sourcePlayerID: this.bullet.sourcePlayerID
-      }
-    )
-  }
-}
-
-
-class RemoveClientPlayerFromDatabaseCommand implements Command {
-  public execute(): void {
-    set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers)
-  }
-}
-
-
-class RemoveAllBulletsBySelfFromDatabaseCommand implements Command {
-  public execute(): void {
-    const BULLETS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
-    for (let i = 0; i < BULLETS.length; i++) {
-      if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
-        delete Game.instance.allBullets[BULLETS[i].id];
-        console.log("deleted at the end")
-      }
-    }
-    set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets)
-  }
-}
-
 export {
   Command,
   HandleMouseClickCommand,
@@ -481,7 +497,6 @@ export {
   MenuMouseClickedEventHandlerCommand,
   MainGameMouseClickedEventHandlerCommand,
   UpdatePlayerPositionToFirebaseCommand,
-  ClearAllPlayersFromDatabaseCommand, 
   RemoveClientPlayerFromDatabaseCommand, 
   TogglePauseCommand, 
   LockPointerCommand, 

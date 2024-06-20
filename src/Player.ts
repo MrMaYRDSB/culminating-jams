@@ -1,4 +1,4 @@
-import { RemoveOwnLaserFromFirebaseCommand, UpdateLaserToFirebaseCommand, UpdatePlayerPositionToFirebaseCommand } from "./Command.js"
+import { UpdateLaserToFirebaseCommand, UpdatePlayerPositionToFirebaseCommand } from "./Command.js"
 import { Game } from "./Game.js"
 import { GameMap, Colors, PIXEL_COLORS } from "./Map.js"
 //@ts-ignore Import module
@@ -11,44 +11,33 @@ import { AmmoGauge } from "./Ammunition.js";
 
 
 class Player {
+  readonly acceleration: number = 2
+  readonly maxMovingSpeed: number = 8
+  readonly maxHealth: number = 10;
+  readonly id: string = nanoid(20);
+  readonly ammoGauge: AmmoGauge = new AmmoGauge()
+  readonly rotationSpeed: number = Math.PI / 180
+  readonly laser: Laser = new Laser(this);
+
+
 
   public static size: number = 56
-  // note that x and y are center values
+  // note that x and y are center values, but z in the z value of the top of the player
   private _x: number = GameMap.tileSize * 1.5
   private _y: number = GameMap.tileSize * 1.5
   private _z: number = GameMap.tileSize * 1.9
   private size: number = Player.size
   private _yaw: number = 0;
   private _pitch: number = 0;
-  private _rotationSpeed: number = Math.PI/180
-  private _fov = Math.PI / 2; // Field of view
+  private _fov: number = Math.PI / 2; // Field of view
   public colorCode: number = Utilities.randInt(0, PIXEL_COLORS.length)
-  readonly acceleration: number = 2
-  readonly maxMovingSpeed: number = 8
-  readonly maxHealth: number = 10;
   private _health: number = this.maxHealth
-
-  readonly id: string = nanoid(20);
-
-  readonly ammoGauge: AmmoGauge = new AmmoGauge()
-
-
   private grounded: boolean = false;
-
   private shootingCooldown: number = 500;
   private currentShootingCooldown: number = 0
-
   private maxPitch: number = Math.PI / 2
-
   private velocityVector: Vector = [0, 0, 0]
   private _directionVector: Vector = [1, 0, 0]
-  
-  private _laser: Laser = new Laser(this);
-
-
-  public get laser(): Laser | undefined {
-    return this._laser
-  }
 
   public get x(): number {
     return this._x
@@ -67,9 +56,6 @@ class Player {
   }
   public get fov(): number {
     return this._fov
-  }
-  public get rotationSpeed(): number {
-    return this._rotationSpeed
   }
 
   public set yaw(angle: number) {
@@ -114,7 +100,7 @@ class Player {
   }
 
 
-  public setLocation(location: Position) {
+  public setLocation(location: Position): void {
     this._x = location[0];
     this._y = location[1];
     this._z = location[2];
@@ -130,11 +116,10 @@ class Player {
   }
 
 
-  public setDirection(direction: Direction) {
+  public setDirection(direction: Direction): void {
     this._pitch = direction[1]
     this._yaw = direction[0]
   }
-
 
   public rotateYaw(deg: number): void {
     this._yaw += deg
@@ -150,7 +135,7 @@ class Player {
   }
 
 
-  public determineIntendedMovementDirectionVectorBasedOnAccelerationDirections(): Vector {
+  private determineIntendedMovementDirectionVectorBasedOnAccelerationDirections(): Vector {
     const forwardV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw, 0])
     const backwardV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw + Math.PI, 0])
     const leftV: Vector = VectorMath.convertYawAndPitchToUnitVector([this.yaw - Math.PI / 2, 0])
@@ -175,7 +160,7 @@ class Player {
   }
 
 
-  public modifyVelocityVectorBasedOnIntendedVector() {
+  private modifyVelocityVectorBasedOnIntendedVector(): void {
     const INTENDED_MOVEMENT_DIRECTION: Vector =
       this.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     
@@ -216,7 +201,8 @@ class Player {
     }
   }
 
-  public moveX(): void {
+
+  private moveX(): void {
     this._x += this.velocityVector[0]
     if (this.collideWithWall()) {
       this._x -= this.velocityVector[0]
@@ -231,7 +217,7 @@ class Player {
     }
   }
 
-  public moveY(): void {
+  private moveY(): void {
     this._y += this.velocityVector[1]
     if (this.collideWithWall()) {
       this._y -= this.velocityVector[1]
@@ -246,7 +232,7 @@ class Player {
     }
   }
 
-  public moveZ(): void {
+  private moveZ(): void {
     this._z += this.velocityVector[2]
     if (this.collideWithWall()) {
       this._z -= this.velocityVector[2];
@@ -266,13 +252,13 @@ class Player {
   }
 
   public update(): void {
-    this._laser.adjustToPlayer(this)
-    if (this._laser.isOn) {
+    this.laser.adjustToPlayer(this)
+    if (this.laser.isOn) {
       this.laser.useFuel()
     } else {
       this.ammoGauge.regenerateFuel()
     }
-    new UpdateLaserToFirebaseCommand(this._laser).execute()
+    new UpdateLaserToFirebaseCommand(this.laser).execute()
 
 
 
@@ -288,7 +274,7 @@ class Player {
     new UpdatePlayerPositionToFirebaseCommand(this).execute()
   }
 
-  public updateVerticalMovementDueToGravity(): void {
+  private updateVerticalMovementDueToGravity(): void {
     if (!this.grounded) {
       if (this.velocityVector[2] <= -Game.instance.terminalVelocity) {
         this.velocityVector[2] = -Game.instance.terminalVelocity
@@ -301,7 +287,7 @@ class Player {
     this.moveZ()
   }
 
-  public pointInWall(x: number, y: number, z: number) {
+  private pointInWall(x: number, y: number, z: number): boolean {
     if (
       Game.instance.gameMap.map
       [Math.floor(z / GameMap.tileSize)]
@@ -314,7 +300,7 @@ class Player {
   }
 
 
-  public collideWithWall(): boolean {
+  private collideWithWall(): boolean {
     const VERTICES: number[][] = [
       [this._x + this.size / 2, this._y - this.size / 2, this._z],
       [this._x + this.size / 2, this._y + this.size / 2, this._z],
@@ -333,9 +319,8 @@ class Player {
     return false;
   }
 
-
   
-  public getShortestRayCollisionToBullet(rayVector: Vector): number[] {
+  private getShortestRayCollisionToBullet(rayVector: Vector): number[] {
     let shortestDistance: number = 1000000;
 
     const BULLET_POSITIONS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] = Object.values(Game.instance.allBullets)
@@ -370,7 +355,8 @@ class Player {
     return [shortestDistance, Bullet.color]
   }
 
-  public getShortestRayCollisionToPlayer(rayVector: Vector): number[] {
+  
+  private getShortestRayCollisionToPlayer(rayVector: Vector): number[] {
     let shortestDistance: number = 1000000;
     let color: number = 0
 

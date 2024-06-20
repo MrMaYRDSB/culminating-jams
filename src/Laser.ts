@@ -6,20 +6,14 @@ import { Game } from "./Game.js";
 
 class Laser {
   public static damage: number = 0.1
-  protected _position: Position
-  protected _directionVector: Vector
-  protected _sourcePlayerID: string
-  protected _isOn: boolean = false;
+  private _position: Position
+  private _directionVector: Vector
+  private _sourcePlayerID: string
+  public isOn: boolean = false;
   readonly fuelCost: number = 1
 
   readonly id: string = nanoid(20);
 
-  public get isOn(): boolean {
-    return this._isOn
-  }
-  public set isOn(n: boolean) {
-    this._isOn = n;
-  }
   public get sourcePlayerID(): string {
     return this._sourcePlayerID;
   }
@@ -39,7 +33,7 @@ class Laser {
   }
 
 
-  public adjustToPlayer(p: Player) {
+  public adjustToPlayer(p: Player): void {
     this._position = p.position;
     this._directionVector = p.directionVector;
   }
@@ -49,10 +43,10 @@ class Laser {
     if (Game.instance.player.ammoGauge.canUseFuel(this.fuelCost)) {
       Game.instance.player.ammoGauge.useFuel(this.fuelCost)
       if (!Game.instance.player.ammoGauge.hasFuel) {
-        this._isOn = false
+        this.isOn = false
       }
     } else {
-      this._isOn = false
+      this.isOn = false
     }
   }
 }

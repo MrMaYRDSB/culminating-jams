@@ -1,5 +1,4 @@
 import { Canvas } from "./Canvas.js";
-import { MouseLockClient } from "./MouseLockClient.js";
 class PlayerController {
     player;
     _wKeyPressed = false;
@@ -8,7 +7,6 @@ class PlayerController {
     _dKeyPressed = false;
     _escKeyPressed = false;
     _spaceKeyPressed = false;
-    mouseLockClient = new MouseLockClient();
     // default is 1
     _sensitivity = 0.5;
     get sensitivity() {

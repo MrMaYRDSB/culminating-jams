@@ -10,8 +10,6 @@ class FirebaseClient {
   private static _instance: FirebaseClient | undefined;
   private app = initializeApp(firebaseConfig)
   private _db = getDatabase(this.app)
-
-  private constructor() { }
   
   public static get instance(): FirebaseClient {
     if (FirebaseClient._instance === undefined) {

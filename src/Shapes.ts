@@ -25,7 +25,7 @@ class Rectangle {
     return this._y
   }
   
-  public draw() {
+  public draw(): void {
     Canvas.instance.context.fillStyle = this.color;
     Canvas.instance.context.fillRect(this.x, this.y, this.width, this.height);
   }

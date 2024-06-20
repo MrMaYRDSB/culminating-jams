@@ -1,10 +1,6 @@
 import { HandleMouseClickCommand, HandleMouseMoveCommand, Command } from "./Command.js";
 import { Canvas } from "./Canvas.js";
 import { Player } from "./Player.js";
-import { MouseLockClient } from "./MouseLockClient.js";
-import { Game } from "./Game.js";
-
-
 
 
 class PlayerController {
@@ -15,7 +11,13 @@ class PlayerController {
   private _escKeyPressed: boolean = false
   private _spaceKeyPressed: boolean = false;
 
-  readonly mouseLockClient: MouseLockClient = new MouseLockClient()
+  private mousePositionX: number = 0;
+  private mousePositionY: number = 0;
+  private _mouseClickCommand: HandleMouseClickCommand | undefined;
+  private _mouseMoveCommand: HandleMouseMoveCommand | undefined;
+
+  private _escKeyPressedCommand: Command | undefined;
+  private _pointerLockChangeCommand: Command | undefined;
 
   // default is 1
   private _sensitivity: number = 0.5;
@@ -51,13 +53,7 @@ class PlayerController {
     return this._escKeyPressed;
   }
 
-  protected mousePositionX: number = 0;
-  protected mousePositionY: number = 0;
-  private _mouseClickCommand: HandleMouseClickCommand | undefined;
-  private _mouseMoveCommand: HandleMouseMoveCommand | undefined;
 
-  private _escKeyPressedCommand: Command | undefined;
-  private _pointerLockChangeCommand: Command | undefined;
 
   public get mouseClickCommand(): HandleMouseClickCommand | undefined {
     return this._mouseClickCommand
@@ -125,7 +121,7 @@ class PlayerController {
   }
 
 
-  public clearInput() {
+  public clearInput(): void {
     this._aKeyPressed = false;
     this._wKeyPressed = false;
     this._sKeyPressed = false;
@@ -143,22 +139,22 @@ class PlayerController {
     this._escKeyPressedCommand = c
   } 
 
-  public assignMouseMoveCommand(c: HandleMouseMoveCommand | undefined) {
+  public assignMouseMoveCommand(c: HandleMouseMoveCommand | undefined): void {
     this._mouseMoveCommand = c
   }
 
-  public assignPointerLockChangeCommand(c: Command | undefined) {
+  public assignPointerLockChangeCommand(c: Command | undefined): void {
     this._pointerLockChangeCommand = c
   }
 
-  private handleMouseMoveEvent(event: MouseEvent) {
+  private handleMouseMoveEvent(event: MouseEvent): void {
     if (this._mouseMoveCommand !== undefined) {
       this._mouseMoveCommand.assignMovement(event.movementX, event.movementY).execute()
     }
   }
 
 
-  private handleMouseClickEvent(event: MouseEvent) {
+  private handleMouseClickEvent(event: MouseEvent): void {
     const MOUSE_X: number = event.clientX;
     const MOUSE_Y: number = event.clientY;
 

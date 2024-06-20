@@ -98,15 +98,36 @@ class DisplayTextCommand {
     text;
     x;
     y;
-    maxW;
-    constructor(text, x, y, maxW) {
+    maxWidth;
+    constructor(text, x, y, maxWidth) {
         this.text = text;
         this.x = x;
         this.y = y;
-        this.maxW = maxW;
+        this.maxWidth = maxWidth;
     }
     execute() {
-        Utilities.writeLargeText(this.text, this.x, this.y, this.maxW);
+        // modified code from StackOverflow to autowrap texts in canvas
+        let fontSize = 16;
+        let fontFace = "Arial";
+        let words = this.text.split(' ');
+        let line = '';
+        let lineHeight = fontSize;
+        Canvas.instance.context.fillStyle = "black";
+        Canvas.instance.context.font = fontSize + "px " + fontFace;
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = Canvas.instance.context.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > this.maxWidth) {
+                Canvas.instance.context.fillText(line, this.x, this.y);
+                line = words[n] + ' ';
+                this.y += lineHeight;
+            }
+            else {
+                line = testLine;
+            }
+        }
+        Canvas.instance.context.fillText(line, this.x, this.y);
     }
 }
 class RenderViewForPlayerCommand {
@@ -287,6 +308,38 @@ class RemoveBulletFromFirebaseByIDCommand {
         }
     }
 }
+class UploadBulletToFirebaseCommand {
+    bullet;
+    constructor(bullet) {
+        this.bullet = bullet;
+    }
+    execute() {
+        update(ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`), {
+            x: this.bullet.x,
+            y: this.bullet.y,
+            z: this.bullet.z,
+            id: this.bullet.id,
+            sourcePlayerID: this.bullet.sourcePlayerID
+        });
+    }
+}
+class RemoveClientPlayerFromDatabaseCommand {
+    execute() {
+        set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
+    }
+}
+class RemoveAllBulletsBySelfFromDatabaseCommand {
+    execute() {
+        const BULLETS = Object.values(Game.instance.allBullets);
+        for (let i = 0; i < BULLETS.length; i++) {
+            if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
+                delete Game.instance.allBullets[BULLETS[i].id];
+                console.log("deleted at the end");
+            }
+        }
+        set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
+    }
+}
 class LockPointerCommand {
     execute() {
         const havePointerLock = 'pointerLockElement' in document ||
@@ -336,42 +389,5 @@ class UnsetMainGameControlsCommand {
         Game.instance.controller.assignMouseClickCommand(undefined);
     }
 }
-class ClearAllPlayersFromDatabaseCommand {
-    execute() {
-        set(ref(FirebaseClient.instance.db, `/players`), {});
-    }
-}
-class UploadBulletToFirebaseCommand {
-    bullet;
-    constructor(bullet) {
-        this.bullet = bullet;
-    }
-    execute() {
-        update(ref(FirebaseClient.instance.db, `/bullets/${this.bullet.id}`), {
-            x: this.bullet.x,
-            y: this.bullet.y,
-            z: this.bullet.z,
-            id: this.bullet.id,
-            sourcePlayerID: this.bullet.sourcePlayerID
-        });
-    }
-}
-class RemoveClientPlayerFromDatabaseCommand {
-    execute() {
-        set(ref(FirebaseClient.instance.db, `/players`), Game.instance.otherPlayers);
-    }
-}
-class RemoveAllBulletsBySelfFromDatabaseCommand {
-    execute() {
-        const BULLETS = Object.values(Game.instance.allBullets);
-        for (let i = 0; i < BULLETS.length; i++) {
-            if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
-                delete Game.instance.allBullets[BULLETS[i].id];
-                console.log("deleted at the end");
-            }
-        }
-        set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);
-    }
-}
-export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, ClearAllPlayersFromDatabaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, UpdateLaserToFirebaseCommand, RemoveOwnLaserFromFirebaseCommand, DisplayTextCommand };
+export { HandleMouseClickCommand, HandleMouseMoveCommand, MainGameHandleMouseMoveCommand, DisplayMenuAndSetMouseControllerCommand, StartGameCommand, MenuMouseClickedEventHandlerCommand, MainGameMouseClickedEventHandlerCommand, UpdatePlayerPositionToFirebaseCommand, RemoveClientPlayerFromDatabaseCommand, TogglePauseCommand, LockPointerCommand, ExitGameCommand, RenderViewForPlayerCommand, RemoveBulletFromFirebaseByIDCommand, UpdateBulletPositionToFirebaseCommand, ExitGameThenDisplayMenuCommand, UnlockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, UpdateLaserToFirebaseCommand, RemoveOwnLaserFromFirebaseCommand, DisplayTextCommand };
 //# sourceMappingURL=Command.js.map
