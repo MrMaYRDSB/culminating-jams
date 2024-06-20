@@ -20,7 +20,7 @@ class Utilities {
 
   // lower bound inclusive, upper exclusive
   public static randInt(low: number, high: number): number {
-    return Math.floor(Math.random() * (high-low)) + low
+    return Math.floor(Math.random() * (high - low)) + low;
   }
 
 
@@ -40,14 +40,14 @@ class Utilities {
 
   public static fillShapeOnVertices(vertices: number[][], color: string): void {
     if (vertices.length >= 2) {
-      let shape: Path2D = new Path2D()
-      shape.moveTo(vertices[0][0], vertices[0][1])
+      let shape: Path2D = new Path2D();
+      shape.moveTo(vertices[0][0], vertices[0][1]);
       for (let i = 1; i < vertices.length; i++) {
-        shape.lineTo(vertices[i][0], vertices[i][1])
+        shape.lineTo(vertices[i][0], vertices[i][1]);
       }
-      shape.closePath()
+      shape.closePath();
       Canvas.instance.context.fillStyle = color;
-      Canvas.instance.context.fill(shape)
+      Canvas.instance.context.fill(shape);
     }
   }
 }

@@ -335,7 +335,6 @@ class RemoveAllBulletsBySelfFromDatabaseCommand {
         for (let i = 0; i < BULLETS.length; i++) {
             if (BULLETS[i].sourcePlayerID === Game.instance.player.id) {
                 delete Game.instance.allBullets[BULLETS[i].id];
-                console.log("deleted at the end");
             }
         }
         set(ref(FirebaseClient.instance.db, `/bullets`), Game.instance.allBullets);

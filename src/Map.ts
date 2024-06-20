@@ -1,5 +1,5 @@
 
-const PIXEL_COLORS: number[][] = [[0, 255, 255], [0, 255, 0], [200, 200, 200], [255, 255, 0], 	[169, 169, 169]]
+const PIXEL_COLORS: number[][] = [[0, 255, 255], [0, 255, 0], [200, 200, 200], [255, 255, 0], [169, 169, 169]];
 enum Colors {
   AQUA = 0,
   GREEN = 1,
@@ -11,18 +11,18 @@ enum Colors {
 
 class GameMap {
   public static tileSize = 64;
-  public static _wallBitSize: number = 4
-  public static wallTexture: number[][][] = []
+  public static _wallBitSize: number = 4;
+  public static wallTexture: number[][][] = [];
 
 
   public static get wallBitSize(): number {
-    return GameMap._wallBitSize
+    return GameMap._wallBitSize;
   }
 
 
 
   constructor() {
-    GameMap.wallTexture =   [
+    GameMap.wallTexture = [
       [
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
@@ -40,9 +40,9 @@ class GameMap {
         [4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-       ],
+      ],
         
-       [
+      [
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
@@ -59,9 +59,9 @@ class GameMap {
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-       ]   
-    ]
-    GameMap._wallBitSize = 4
+      ]
+    ];
+    GameMap._wallBitSize = 4;
     // fetch("./assets/textures.json")
     // .then((res) => { return res.json() })
     //   .then((data) => {
@@ -281,7 +281,7 @@ class GameMap {
   ];
 
   public get map(): number[][][] {
-    return this._map
+    return this._map;
   }
 }
 

@@ -5,12 +5,12 @@ import { Player } from "./Player.js";
 import { Game } from "./Game.js";
 
 class Laser {
-  public static damage: number = 0.1
-  private _position: Position
-  private _directionVector: Vector
-  private _sourcePlayerID: string
+  public static damage: number = 0.1;
+  private _position: Position;
+  private _directionVector: Vector;
+  private _sourcePlayerID: string;
   public isOn: boolean = false;
-  readonly fuelCost: number = 1
+  readonly fuelCost: number = 1;
 
   readonly id: string = nanoid(20);
 
@@ -18,18 +18,18 @@ class Laser {
     return this._sourcePlayerID;
   }
   public get position(): Position {
-    return this._position
+    return this._position;
   }
 
   public get directionVector(): Vector {
-    return this._directionVector
+    return this._directionVector;
   }
   constructor(
     player: Player
   ) { 
-    this._directionVector = player.directionVector
+    this._directionVector = player.directionVector;
     this._position = player.position;
-    this._sourcePlayerID = player.id
+    this._sourcePlayerID = player.id;
   }
 
 
@@ -41,12 +41,12 @@ class Laser {
 
   public useFuel(): void {
     if (Game.instance.player.ammoGauge.canUseFuel(this.fuelCost)) {
-      Game.instance.player.ammoGauge.useFuel(this.fuelCost)
+      Game.instance.player.ammoGauge.useFuel(this.fuelCost);
       if (!Game.instance.player.ammoGauge.hasFuel) {
-        this.isOn = false
+        this.isOn = false;
       }
     } else {
-      this.isOn = false
+      this.isOn = false;
     }
   }
 }

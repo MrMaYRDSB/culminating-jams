@@ -6,7 +6,7 @@ import { Game } from "./Game.js";
 import { GameMap } from "./Map.js";
 
 class Bullet {
-  public static damage: number = 2
+  public static damage: number = 2;
   public static size: number = 10;
   public static color: number = 0;
   public static fuelCost: number = 40;
@@ -15,37 +15,37 @@ class Bullet {
   private _x: number;
   private _y: number;
   private _z: number;
-  readonly id: string = nanoid(25)
+  readonly id: string = nanoid(25);
 
   public get x(): number {
-    return this._x
+    return this._x;
   }
 
   public get y(): number {
-    return this._y
+    return this._y;
   }
 
   public get z(): number {
-    return this._z
+    return this._z;
   }
 
   public get sourcePlayerID(): string {
-    return this._player.id
+    return this._player.id;
   }
 
   constructor(
     private _player: Player,
   ) {
-    this.velocityVector = VectorMath.convertUnitVectorToVector(this._player.directionVector, this.speed)
-    this._x = this._player.x
-    this._y = this._player.y
-    this._z = this._player.z - Player.size/2
+    this.velocityVector = VectorMath.convertUnitVectorToVector(this._player.directionVector, this.speed);
+    this._x = this._player.x;
+    this._y = this._player.y;
+    this._z = this._player.z - Player.size / 2;
   }
 
   public updatePosition(): void {
-    this._x += this.velocityVector[0]
-    this._y += this.velocityVector[1]
-    this._z += this.velocityVector[2]
+    this._x += this.velocityVector[0];
+    this._y += this.velocityVector[1];
+    this._z += this.velocityVector[2];
   }
 
   private pointInWall(x: number, y: number, z: number): boolean {

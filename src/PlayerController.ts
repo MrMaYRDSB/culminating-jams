@@ -23,30 +23,30 @@ class PlayerController {
   private _sensitivity: number = 0.5;
 
   public get sensitivity(): number {
-    return this._sensitivity
+    return this._sensitivity;
   }
 
   public get wKeyPressed(): boolean {
-    return this._wKeyPressed
+    return this._wKeyPressed;
   }
 
   
   public get aKeyPressed(): boolean {
-    return this._aKeyPressed
+    return this._aKeyPressed;
   }
 
   
   public get dKeyPressed(): boolean {
-    return this._dKeyPressed
+    return this._dKeyPressed;
   }
 
   
   public get sKeyPressed(): boolean {
-    return this._sKeyPressed
+    return this._sKeyPressed;
   }
 
   public get spaceKeyPressed(): boolean {
-    return this._spaceKeyPressed
+    return this._spaceKeyPressed;
   }
 
   public get escKeyPressed(): boolean {
@@ -56,17 +56,17 @@ class PlayerController {
 
 
   public get mouseClickCommand(): HandleMouseClickCommand | undefined {
-    return this._mouseClickCommand
+    return this._mouseClickCommand;
   }
 
   public get mouseMoveCommand(): HandleMouseMoveCommand | undefined {
-    return this._mouseMoveCommand
+    return this._mouseMoveCommand;
   }
 
 
   constructor(readonly player: Player) {
     document.addEventListener("mousedown", (event) => this.handleMouseClickEvent(event));
-    document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e))
+    document.addEventListener("mousemove", (e) => this.handleMouseMoveEvent(e));
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'd') {
@@ -85,7 +85,7 @@ class PlayerController {
         this._spaceKeyPressed = true;
       }
       if (e.key === "Escape") {
-        this._escKeyPressed = true
+        this._escKeyPressed = true;
       }
     });
 
@@ -103,11 +103,11 @@ class PlayerController {
         this._sKeyPressed = false;
       } 
       if (e.key === " ") {
-        this._spaceKeyPressed = false
+        this._spaceKeyPressed = false;
       }
       if (e.key === "Escape") {
         if (this._escKeyPressed === true && this._escKeyPressedCommand !== undefined) {
-          this._escKeyPressedCommand.execute()
+          this._escKeyPressedCommand.execute();
         }
         this._escKeyPressed = false;
       }
@@ -115,7 +115,7 @@ class PlayerController {
 
     document.addEventListener("pointerlockchange", (e) => {
       if (this._pointerLockChangeCommand !== undefined) {
-        this._pointerLockChangeCommand.execute()
+        this._pointerLockChangeCommand.execute();
       }
     })
   }
@@ -136,20 +136,20 @@ class PlayerController {
   }
 
   public assignEscKeyPressedCommand(c: Command | undefined): void {
-    this._escKeyPressedCommand = c
+    this._escKeyPressedCommand = c;
   } 
 
   public assignMouseMoveCommand(c: HandleMouseMoveCommand | undefined): void {
-    this._mouseMoveCommand = c
+    this._mouseMoveCommand = c;
   }
 
   public assignPointerLockChangeCommand(c: Command | undefined): void {
-    this._pointerLockChangeCommand = c
+    this._pointerLockChangeCommand = c;
   }
 
   private handleMouseMoveEvent(event: MouseEvent): void {
     if (this._mouseMoveCommand !== undefined) {
-      this._mouseMoveCommand.assignMovement(event.movementX, event.movementY).execute()
+      this._mouseMoveCommand.assignMovement(event.movementX, event.movementY).execute();
     }
   }
 

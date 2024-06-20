@@ -39,7 +39,7 @@ class MenuButton extends Rectangle implements MenuProperties {
   }
 
   public draw(): void {
-    super.draw()
+    super.draw();
     Canvas.instance.context.fillStyle = "white";
     Canvas.instance.context.font = "16px Arial";
     const TEXT_WIDTH: number = 8 * this.title.length;
@@ -78,7 +78,7 @@ class MenuButton extends Rectangle implements MenuProperties {
 class CompositeMenu implements MenuProperties {
   private _buttons: MenuButton[] = [];
   private command: Command | undefined;
-  private renderBackgroundCommand: Command | undefined
+  private renderBackgroundCommand: Command | undefined;
   private displayElementCommands: Command[] = [];
 
   constructor(private title: string) { }
@@ -89,13 +89,13 @@ class CompositeMenu implements MenuProperties {
   }
 
   public addDisplayElementCommand(c: Command): CompositeMenu {
-    this.displayElementCommands.push(c)
-    return this
+    this.displayElementCommands.push(c);
+    return this;
   }
 
   public assignRenderBackgroundCommand(c: Command): CompositeMenu {
-    this.renderBackgroundCommand = c
-    return this
+    this.renderBackgroundCommand = c;
+    return this;
   }
 
   public get buttons(): MenuButton[] {
@@ -125,7 +125,7 @@ class CompositeMenu implements MenuProperties {
     if (this.renderBackgroundCommand === undefined) {
       Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);
     } else {
-      this.renderBackgroundCommand.execute()
+      this.renderBackgroundCommand.execute();
     }
     const TEXT_WIDTH: number = 20 * this.title.length;
     Canvas.instance.context.fillStyle = "blue";
@@ -137,7 +137,7 @@ class CompositeMenu implements MenuProperties {
     );
     this.drawAllButtons();
     for (let command of this.displayElementCommands) {
-      command.execute()
+      command.execute();
     }
   }
 }

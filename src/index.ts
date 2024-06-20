@@ -4,13 +4,13 @@ import { VectorMath } from "./Vector.js"
 
 class Driver {
   constructor() {
-    Canvas.instance
-    Canvas.instance.startGame()
+    Canvas.instance;
+    Canvas.instance.startGame();
   }
 }
 
 
-new Driver()
+new Driver();
 //@ts-ignorets-ignore
 window.Driver = Driver
 
