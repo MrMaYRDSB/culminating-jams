@@ -354,7 +354,7 @@ class Player {
                         const DISTANCE = VectorMath.getDistance(currentRayPosition, PLAYER_POSITION);
                         const HIT_X = Math.abs(currentRayPosition[0] % GameMap.tileSize);
                         const HIT_Y = Math.abs(currentRayPosition[1] % GameMap.tileSize);
-                        // NOTE: (*0.99) and (+- 0.1) in the above is a bandaid solution to prevent overflowing texture bound
+                        // NOTE: (*0.99) and (+- 0.1) in the above is to prevent overflowing texture bound
                         // Since POI Calculations are precise, sometimes it gets HIT_X = 64 (boundary)
                         // So the wall Texture array access will exceed length
                         const PIXEL_COLOR = GameMap.wallTexture[1][Math.floor(HIT_X / GameMap.wallBitSize)][Math.floor(HIT_Y / GameMap.wallBitSize)];
@@ -439,6 +439,7 @@ class Player {
             }
         }
         let results;
+        // the ray is the shortest ray that collides with either of the 3 axial planes
         if (YCollisionResults[0] <= XCollisionResults[0] &&
             YCollisionResults[0] <= ZCollisionResults[0]) {
             results = YCollisionResults;

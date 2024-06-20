@@ -1,8 +1,16 @@
+/**
+ * keep track of ammo for the player
+ */
 class AmmoGauge {
   private _gauge: number = 100;
   readonly maxGauge: number = 100;
+
+  /**
+   * the limit below which ammo cannot be used
+   */
   readonly usableLimit: number = 40;
   readonly regenerationSpeed: number = 0.2;
+
   public get gauge(): number {
     return this._gauge;
   }
@@ -22,10 +30,12 @@ class AmmoGauge {
     }
   }
 
+  /**
+   * check if the fuel is above the usable limit
+   */
   public get canUse(): boolean {
     return this._gauge >= this.usableLimit;
   }
-
 
   public regenerateFuel(): void {
     if (this.canUse) {

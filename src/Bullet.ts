@@ -29,6 +29,7 @@ class Bullet {
     return this._z;
   }
 
+  /** get the id of the source player */
   public get sourcePlayerID(): string {
     return this._player.id;
   }
@@ -42,12 +43,20 @@ class Bullet {
     this._z = this._player.z - Player.size / 2;
   }
 
+
   public updatePosition(): void {
     this._x += this.velocityVector[0];
     this._y += this.velocityVector[1];
     this._z += this.velocityVector[2];
   }
 
+  /**
+   *  check if the given point (x, y, z) is inside the blocks in the map
+   * @param x 
+   * @param y 
+   * @param z 
+   * @returns true if it is, false if it is not
+   */
   private pointInWall(x: number, y: number, z: number): boolean {
     if (
       Game.instance.gameMap.map
@@ -61,6 +70,10 @@ class Bullet {
   }
 
 
+  /**
+   * 
+   * @returns true if bullet collided with wall, false if not
+   */
   public collideWithWall(): boolean {
     const VERTICES: number[][] = [
       [this._x + Bullet.size / 2, this._y - Bullet.size / 2, this._z + Bullet.size /2 ],

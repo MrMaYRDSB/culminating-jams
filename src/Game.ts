@@ -25,6 +25,7 @@ class Game {
   private gameLoop: any = undefined;
   readonly FPS: number = 30;
   private timeInterval: number = 1000 / this.FPS;
+  /** pixel size */
   readonly resolution: number = 10;
   readonly gravitationalAccelerationConstant: number = 1;
   readonly terminalVelocity: number = 12;
@@ -69,6 +70,9 @@ class Game {
     });
   }
 
+  /**
+   * functions that runs when the program starts (cannot put in constructor to avoid conflict)
+   */
   public start(): void {
     new DisplayMenuAndSetMouseControllerCommand(this.mainMenu).execute();
   }
@@ -242,10 +246,10 @@ class Game {
     const BULLET_POSITIONS: { x: number, y: number, z: number, id: string, sourcePlayerID: string }[] =
       Object.values(this.allBullets);
     for (let bullet of BULLET_POSITIONS) {
-      const bmin: Position = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
-      const bmax: Position = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
+      const BULLET_MINIMUM_POSITION: Position = [bullet.x - Bullet.size / 2, bullet.y - Bullet.size / 2, bullet.z - Bullet.size / 2];
+      const BULLET_MAXIMUM_POSITION: Position = [bullet.x + Bullet.size / 2, bullet.y + Bullet.size / 2, bullet.z + Bullet.size / 2];
       if (
-        VectorMath.rectanglesCollide(bmin, bmax, this.player.charMin, this.player.charMax) &&
+        VectorMath.rectanglesCollide(BULLET_MINIMUM_POSITION, BULLET_MAXIMUM_POSITION, this.player.charMin, this.player.charMax) &&
         bullet.sourcePlayerID !== this.player.id
       ) {
         this.player.takeDamage(Bullet.damage);
@@ -448,12 +452,12 @@ class Game {
         let vectorFromPlayerToPoint: Vector = VectorMath.addVectors(playerToViewportTopLeftVector, viewportTopLeftToPointVector);
         let rayAngles: Direction = VectorMath.convertVectorToYawAndPitch(vectorFromPlayerToPoint);
 
-        const RAW_RAY_DISTANCE: number[] = this.player.castBlockVisionRayVersion3(rayAngles[0], rayAngles[1]);
+        const RAW_RAY_RESULTS: number[] = this.player.castBlockVisionRayVersion3(rayAngles[0], rayAngles[1]);
         
         // custom shading
         // render the pixel
-        const COLOR: number[] = PIXEL_COLORS[RAW_RAY_DISTANCE[1]];
-        const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_DISTANCE[0]), 1) * this.brightnessMultiplier;
+        const COLOR: number[] = PIXEL_COLORS[RAW_RAY_RESULTS[1]];
+        const brightness: number = Math.min((GameMap.tileSize / RAW_RAY_RESULTS[0]), 1) * this.brightnessMultiplier;
         
         Utilities.drawPixel(x, y, `rgb(
           ${Math.floor(COLOR[0] * brightness)},

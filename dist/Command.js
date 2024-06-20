@@ -9,10 +9,18 @@ import { GameMap } from "./Map.js";
 import { PIXEL_COLORS } from "./Map.js";
 import { Utilities } from "./Utilities.js";
 import { Bullet } from "./Bullet.js";
+/**
+ * General class for handling mouse click events
+ */
 class HandleMouseClickCommand {
     mousePositionX = 0;
     mousePositionY = 0;
     rightClick = false;
+    /**
+     *
+     * @param type the type of mouse click (2 is right click, 0 is left click)
+     * @returns itself
+     */
     assignType(type) {
         if (type === 2) {
             this.rightClick = true;
@@ -27,6 +35,9 @@ class HandleMouseClickCommand {
         return this;
     }
 }
+/**
+ * Shoots bullets if right click, toggles laser if left click
+ */
 class MainGameMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
     execute() {
         if (this.rightClick) {
@@ -53,6 +64,9 @@ class MenuMouseClickedEventHandlerCommand extends HandleMouseClickCommand {
         }
     }
 }
+/**
+ * Lock the pointer, start the game, and set the controls for the game
+ */
 class StartGameCommand {
     execute() {
         Canvas.instance.screen.requestPointerLock();
@@ -62,6 +76,9 @@ class StartGameCommand {
         Game.instance.controller.assignPointerLockChangeCommand(new TogglePauseCommand());
     }
 }
+/**
+ * Unset the controls for the game and end the game
+ */
 class ExitGameCommand {
     execute() {
         Game.instance.endGame();
@@ -80,6 +97,9 @@ class ExitGameThenDisplayMenuCommand extends ExitGameCommand {
         new DisplayMenuAndSetMouseControllerCommand(this.menu).execute();
     }
 }
+/**
+ * shoot a bullet from the given player's position
+ */
 class ShootBulletCommand {
     player;
     constructor(player) {
@@ -95,6 +115,9 @@ class ShootBulletCommand {
         }
     }
 }
+/**
+ * display a paragraph of text at the given x and y positions with width "maxWidth"
+ */
 class DisplayTextCommand {
     text;
     x;
@@ -131,6 +154,9 @@ class DisplayTextCommand {
         Canvas.instance.context.fillText(line, this.x, this.y);
     }
 }
+/**
+ * Render the view from the player's current position and perspective
+ */
 class RenderViewForPlayerCommand {
     execute() {
         Canvas.instance.context.clearRect(0, 0, Canvas.WIDTH, Canvas.HEIGHT);

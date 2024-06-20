@@ -25,6 +25,7 @@ class Bullet {
     get z() {
         return this._z;
     }
+    /** get the id of the source player */
     get sourcePlayerID() {
         return this._player.id;
     }
@@ -40,12 +41,23 @@ class Bullet {
         this._y += this.velocityVector[1];
         this._z += this.velocityVector[2];
     }
+    /**
+     *  check if the given point (x, y, z) is inside the blocks in the map
+     * @param x
+     * @param y
+     * @param z
+     * @returns true if it is, false if it is not
+     */
     pointInWall(x, y, z) {
         if (Game.instance.gameMap.map[Math.floor(z / GameMap.tileSize)][Math.floor(y / GameMap.tileSize)][Math.floor(x / GameMap.tileSize)] !== 0) {
             return true;
         }
         return false;
     }
+    /**
+     *
+     * @returns true if bullet collided with wall, false if not
+     */
     collideWithWall() {
         const VERTICES = [
             [this._x + Bullet.size / 2, this._y - Bullet.size / 2, this._z + Bullet.size / 2],
