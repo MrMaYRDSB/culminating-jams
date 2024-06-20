@@ -1,6 +1,6 @@
 import { PlayerController } from "./PlayerController.js";
 import { Canvas } from "./Canvas.js";
-import { DisplayMenuAndSetMouseControllerCommand, DisplayTextCommand, ExitGameCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RemoveOwnLaserFromFirebaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
+import { DisplayMenuAndSetMouseControllerCommand, DisplayTextCommand, ExitGameThenDisplayMenuCommand, LockPointerCommand, RemoveAllBulletsBySelfFromDatabaseCommand, RemoveBulletFromFirebaseByIDCommand, RemoveClientPlayerFromDatabaseCommand, RemoveOwnLaserFromFirebaseCommand, RenderViewForPlayerCommand, StartGameCommand, TogglePauseCommand, UnlockPointerCommand, UpdateBulletPositionToFirebaseCommand } from "./Command.js";
 import { Utilities } from "./Utilities.js";
 import { Player } from "./Player.js";
 import { GameMap } from "./Map.js";
@@ -14,7 +14,6 @@ import {
 import { FirebaseClient } from "./FirebaseClient.js";
 import { Vector, VectorMath, Direction, Position } from "./Vector.js";
 import { Bullet } from "./Bullet.js";
-import { Rectangle } from "./Shapes.js";
 import { Laser } from "./Laser.js";
 
 class Game {

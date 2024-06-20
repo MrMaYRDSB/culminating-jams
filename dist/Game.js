@@ -97,7 +97,6 @@ class Game {
                 this.bulletsToRemove.splice(i, 1);
             }
         }
-        // delete ghost bullets (that do not exist in db)
     }
     startGame() {
         this.player.setLocation(this.spawnLocation);
@@ -166,7 +165,6 @@ class Game {
         new RemoveClientPlayerFromDatabaseCommand().execute();
         new RemoveAllBulletsBySelfFromDatabaseCommand().execute();
         new RemoveOwnLaserFromFirebaseCommand().execute();
-        this.player.determineIntendedMovementDirectionVectorBasedOnAccelerationDirections();
     }
     checkPlayerCollisionWithBullets() {
         const BULLET_POSITIONS = Object.values(this.allBullets);

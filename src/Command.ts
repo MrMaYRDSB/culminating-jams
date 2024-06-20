@@ -94,7 +94,7 @@ class ExitGameCommand implements Command {
   }
 }
 
-
+// got to here with UML
 class ExitGameThenDisplayMenuCommand extends ExitGameCommand implements Command {
   constructor(private menu: CompositeMenu) {
     super()

@@ -1,6 +1,6 @@
 import { UpdateLaserToFirebaseCommand, UpdatePlayerPositionToFirebaseCommand } from "./Command.js"
 import { Game } from "./Game.js"
-import { GameMap, Colors, PIXEL_COLORS } from "./Map.js"
+import { GameMap, PIXEL_COLORS } from "./Map.js"
 //@ts-ignore Import module
 import { nanoid } from "https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.3.4/nanoid.min.js";
 import { Utilities } from "./Utilities.js";

@@ -68,6 +68,7 @@ class ExitGameCommand {
         new UnsetMainGameControlsCommand().execute();
     }
 }
+// got to here with UML
 class ExitGameThenDisplayMenuCommand extends ExitGameCommand {
     menu;
     constructor(menu) {
