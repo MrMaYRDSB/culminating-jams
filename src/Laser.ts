@@ -51,6 +51,8 @@ class Laser {
       if (!Game.instance.player.ammoGauge.hasFuel) {
         this._isOn = false
       }
+    } else {
+      this._isOn = false
     }
   }
 }

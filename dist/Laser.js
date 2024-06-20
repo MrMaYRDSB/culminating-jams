@@ -40,6 +40,9 @@ class Laser {
                 this._isOn = false;
             }
         }
+        else {
+            this._isOn = false;
+        }
     }
 }
 export { Laser };
